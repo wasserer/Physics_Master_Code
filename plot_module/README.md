@@ -1,4 +1,4 @@
-
+#Important: this is a old version of readme, and it is an on-going project. New docs will be updated later.
 # Plot Module
 
 This module provides a unified interface to plot different types of data files including XRD patterns, IV curves, IV sweeps, and summary analysis plots.
