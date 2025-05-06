@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 from pybaselines import Baseline, utils
+from colors import *
 #import pandas as pd
 #import importFile.importXRD as file
 
@@ -78,11 +79,11 @@ class XRDAnalyzer:
     def getFWHM(self):
         pass
 
-    def plotXRD(self, save_path="result_Test.png"):
+    def plotXRD(self, save_path="result_Test.png", graphColor = color.warm()):
         angle, intensity = self.xrd_data
         peaks, _ = self.find_peaks()
         plt.figure(figsize=(7, 5), dpi=300)
-        plt.plot(angle, intensity, label="XRD Intensity")
+        plt.plot(angle, intensity, label="XRD Intensity", color = graphColor)
         plt.xlabel("Angle (2θ)")
         plt.ylabel("Intensity (counts)")
         plt.title("XRD Measurement")
@@ -90,7 +91,7 @@ class XRDAnalyzer:
         plt.savefig(save_path)
         plt.close()
 
-    def plotVesta(self, save_path="result_comparison.png"):
+    def plotVesta(self, save_path="result_comparison.png", graphColor = color.red()):
         angle, intensity = self.xrd_data
         angle_vesta, intensity_vesta = self.vesta_data
         intensity = intensity / np.nanmax(intensity)
@@ -101,7 +102,7 @@ class XRDAnalyzer:
         plt.figure(figsize=(10, 5), dpi=300)
         plt.plot(angle, intensity, label="XRD Intensity", alpha=0.7)
         plt.plot(angle_vesta, intensity_vesta, label="Simulated", alpha=0.7)
-        plt.vlines(angle[peaks], 0, intensity[peaks]*0.9, color='black')
+        plt.vlines(angle[peaks], 0, intensity[peaks]*0.9, color=graphColor)
 
         plt.xlabel("Angle (2θ)")
         plt.ylabel("Intensity (Normalized)")
