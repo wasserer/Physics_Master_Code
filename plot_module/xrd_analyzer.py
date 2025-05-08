@@ -79,7 +79,7 @@ class XRDAnalyzer:
     def getFWHM(self):
         pass
 
-    def plotXRD(self, save_path="result_Test.png", graphColor = color.warm()):
+    def plotXRD(self, save_path="result_Test.png", graphColor = color.matlab()):
         angle, intensity = self.xrd_data
         peaks, _ = self.find_peaks()
         plt.figure(figsize=(7, 5), dpi=300)
