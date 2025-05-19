@@ -9,18 +9,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 from pybaselines import Baseline, utils
-from pymatgen.core import Structure
-from pymatgen.analysis.diffraction.xrd import XRDCalculator
-from pymatgen.ext.matproj import MPRester
-import re
-from io import StringIO
-#from colors import *
+from colors import *
 #import pandas as pd
 #import importFile.importXRD as file
 
 class XRDAnalyzer:
-    def __init__(self, vesta_path=None, importer = None):
-        #self.xrd_path = xrd_path
+    def __init__(self, xrd_path=None, vesta_path=None, importer = None):
+        self.xrd_path = xrd_path
         self.vesta_path = vesta_path
         self.xrd_data = None
         self.vesta_data = None
@@ -28,13 +23,8 @@ class XRDAnalyzer:
         self.peaks = None
         self.simuPeaks = None
         self.peakAngles = None
-        self.angles = None
-        self.intensities = None
-        self.MP_API = "3ZAPXUD7Z91YReSGsjl1snF1d8uNkLDc"
-        self.label = []
-
-    def import_xrd_data(self, labelName ="NewData", pathName = ""):
-        with open(pathName, "r") as file:
+    def import_xrd_data(self):
+        with open(self.xrd_path, "r") as file:
             lines = file.readlines()
 
         data_start_index = None
@@ -44,25 +34,15 @@ class XRDAnalyzer:
                 break
         data_lines = lines[data_start_index:]
         data = np.genfromtxt(data_lines, delimiter=",", dtype=float, skip_header=1)
-        data[:, 1] = data [:, 1] / np.max(data[:, 1])
-        data = data[:, :2]
-        data = data.T
-        if self.xrd_data is None:
-            self.xrd_data = data
-            self.angles = data[0].reshape(1, -1)
-            self.intensities = data[1].reshape(1, -1)
-        else:
-            self.xrd_data = np.vstack((self.xrd_data, data))
-            self.angles = np.vstack((self.angles, data[0]))
-            self.intensities = np.vstack((self.intensities, data[1]))
-
-        self.label.append(labelName)
+        self.xrd_data = (data[:, 0], data[:, 1])
         
-    def import_vesta_data(self, vestaPath = ""):
-        data = np.loadtxt(vestaPath).T
+    def import_vesta_data(self):
+        data = np.loadtxt(self.vesta_path).T
         self.vesta_data = (data[0], data[1])
         return self.vesta_data
-    #Newly added function:
+    
+
+
     def find_peaks_and_fwhm(self, height=20, prominence=20, distance=5, output_file="peaks_and_fwhm.txt"):
         """
         Identify peaks in the XRD data and calculate their FWHM.
@@ -112,10 +92,6 @@ class XRDAnalyzer:
         newY = np.abs(y_clean - newY)
         self.xrd_data = (x_clean, newY)
 
-    def MPAnalyzer(self):
-        pass
-
-
     def find_peaks(self, height=10, distance=5):
         if self.xrd_data is None:
             raise ValueError("XRD data not loaded.")
@@ -136,16 +112,17 @@ class XRDAnalyzer:
     def getFWHM(self):
         pass
 
-    def plotXRD(self, save_path="result_Test.png", graphColor = None, labelName="Label", save = True):
+    def plotXRD(self, save_path="result_Test.png", graphColor = color.matlab()):
+        angle, intensity = self.xrd_data
+        peaks = self.find_peaks()
         plt.figure(figsize=(7, 5), dpi=300)
-        plt.plot(self.angles[0], self.intensities[0], label=labelName, color = graphColor)
+        plt.plot(angle, intensity, label="XRD Intensity", color = graphColor)
         plt.xlabel("Angle (2θ)")
-        plt.ylabel("Intensity (counts)(or normalized)")
+        plt.ylabel("Intensity (counts)")
         plt.title("XRD Measurement")
         plt.legend()
-        if save == True:
-            plt.savefig(save_path)
-            plt.close()
+        plt.savefig(save_path)
+        plt.close()
 
     def plotVesta(self, save_path="result_comparison.png"):
         angle, intensity = self.xrd_data
@@ -170,21 +147,6 @@ class XRDAnalyzer:
         plt.savefig(save_path)
         plt.close()
 
-    def multiXRD(self, savePath = "multiResult.png", graphColor = None, direction = True):
-        num = self.angles.shape[0]
-        plt.figure(figsize=(10,10), dpi = 300)
-        for i in range (0, num):
-            angle = self.angles[i]
-            intensity = self.intensities[i] + 1.1 * i
-            plt.plot(angle, intensity, label = self.label[i], color = graphColor[i])
-        plt.xlabel("Angle (2θ)")
-        plt.ylabel("Intensity (counts)(or normalized)")
-        plt.title("XRD Measurement")
-        plt.legend()
-        plt.grid()
-        plt.savefig(savePath)
-        plt.close()
-        
     def savePeaks(self, file_path = 'Peaks.txt'):
         angles = self.getPeakAngles()
         np.savetxt(fname = file_path, X=angles, delimiter=",")
@@ -194,27 +156,22 @@ class XRDAnalyzer:
         #Store extra data in the xrdData
         dataExtra = self.loadVestaData(extraData)
 
+        
+# Example usage:
 if __name__ == "__main__":
-    from colors import *
-    xrd_path = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/14042025/Result.txt'
+    xrd_path = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/XRD05152025/IPA/IPA.txt'
     vesta_path = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/Material Project/FAPbI3.xy'
-    analyzer = XRDAnalyzer()
-    analyzer.import_xrd_data(pathName=xrd_path)
-    x = analyzer.angles.shape
-    figColor = color.matlab
-    print(x[0])
-    print(analyzer.xrd_data, type(analyzer.xrd_data), analyzer.xrd_data.shape)
-    print(analyzer.angles, type(analyzer.angles), analyzer.angles.shape)
-    print(analyzer.intensities, type(analyzer.intensities), analyzer.intensities.shape)
-    analyzer.import_vesta_data(vestaPath=vesta_path)
-    #analyzer.getPeakAngles()
-    #analyzer.baselineCorrection()
-    #analyzer.savePeaks()
-    labelName = ["IPA"]
-    analyzer.plotXRD(save_path = "testNor.png", graphColor= "red", labelName="IPA")
-    #analyzer.plotVesta("xrd_comparison.png")
-    #x, y = analyzer.find_peaks()
-    #print(x, y)
-    #print(analyzer.xrd_data[0])
-    #print(analyzer.xrd_data[1])
+    analyzer = XRDAnalyzer(xrd_path, vesta_path)
+    analyzer.import_xrd_data()
+    analyzer.import_vesta_data()
+    analyzer.getPeakAngles()
+    analyzer.baselineCorrection()
+    analyzer.savePeaks()
+    analyzer.find_peaks_and_fwhm()
+    analyzer.plotXRD(save_path = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/XRD05152025/IPA/Result.png')
+    analyzer.plotVesta("xrd_comparison.png")
+    x, y = analyzer.find_peaks()
+    print(x, y)
+    print(analyzer.xrd_data[0])
+    print(analyzer.xrd_data[1])
     #analyzer.savePeaks()
