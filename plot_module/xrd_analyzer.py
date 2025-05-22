@@ -129,10 +129,6 @@ class XRDAnalyzer:
         print("The 2θ peak positions are:", angles)
         return angles
 
-    def Normalize(self):
-        ##data == xrd or vesta
-        pass
-
     def getFWHM(self):
         pass
 
@@ -177,8 +173,10 @@ class XRDAnalyzer:
             angle = self.angles[i]
             intensity = self.intensities[i] + 1.1 * i
             plt.plot(angle, intensity, label = self.label[i], color = graphColor[i])
+        #Add sth to plot the simulated vesta peaks
+        
         plt.xlabel("Angle (2θ)")
-        plt.ylabel("Intensity (counts)(or normalized)")
+        plt.ylabel("Intensity (normalized)")
         plt.title("XRD Measurement")
         plt.legend()
         plt.grid()
@@ -189,10 +187,6 @@ class XRDAnalyzer:
         angles = self.getPeakAngles()
         np.savetxt(fname = file_path, X=angles, delimiter=",")
         self.peakAngles = angles
-
-    def storePlots(self, extraData):
-        #Store extra data in the xrdData
-        dataExtra = self.loadVestaData(extraData)
 
 if __name__ == "__main__":
     from colors import *
