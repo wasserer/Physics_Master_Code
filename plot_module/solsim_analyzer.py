@@ -2,14 +2,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from colors import color
+#from colors import color
 import pandas as pd
 
 class solarSimulator:
     def __init__(self, filePath=None, folderPath = None, CSV = None):
         self.filePath = filePath
         self.folderPath = folderPath
+        #self.saveLocation = os.path.join(folderPath, "Result")
         self.CSV = CSV
+        #The raw data from the measurement
         self.data = None
         self.currents = None
         self.CDC = 1000/0.0966
@@ -19,7 +21,7 @@ class solarSimulator:
         #self.counter = 0
         self.dat_files = None
         self.labels = []
-        #Important Points in solSim:
+        #Important Results in solSim:
         self.Voc = None
         self.Isc = None
         self.I_MPP = None
@@ -133,6 +135,7 @@ class solarSimulator:
         plt.figure(figsize=(7, 5), dpi = 300)
         plt.plot(voltage, current*1000, color = colorMode)
         plt.ylabel("Current [mA]")
+        plt.ylim(0, )
         plt.xlabel("Voltage [V]")
         plt.grid()
         plt.savefig(saveName)
@@ -151,6 +154,7 @@ class solarSimulator:
         #self.counter = 0
         plt.ylabel("Current Density [mA/cm2]")#Too big!
         plt.xlabel("Voltage [V]")
+        plt.ylim(0, )
         #plt.ylim(-10, 20)
         #plt.xlim(-0.121, -0.8)
         plt.legend()
@@ -161,17 +165,25 @@ class solarSimulator:
         #plt.show()
         plt.close()
 
-    def HistoPlot(self):
-        pass
+    def histoPlot(self, saveName = "histoPlot.png", type = "PCE[%]", color = "blue"): #Not finished
+        target = os.path.join(self.folderPath, saveName)
+        plt.figure(figsize=(9, 6), dpi=300)
+        plt.hist(self.PCE, bins=20, edgecolor='black', color = color)
+        plt.ylabel("Number")
+        plt.xlabel(type)
+        plt.savefig(target)
+        #plt.show()
+
 
     def boxPlot(self):
+        plt.figure(figsize=(9, 6), dpi=300)
         pass
 
 if __name__ == "__main__":
     from colors import color
     figColor = color.matlab()
     file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest/IPARPM5_1_px5_Light_forward_0.dat'
-    folder = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest/'
+    folder = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest/BestCells'
     analyzer = solarSimulator(filePath = None, folderPath=folder)
     #analyzer.loadFileData()
     analyzer.loadFolderData()
@@ -183,4 +195,5 @@ if __name__ == "__main__":
     print("Isc:", analyzer.Isc, "Voc:", analyzer.Voc, "VMPP:", analyzer.V_MPP, "IMPP:",analyzer.I_MPP, "FF:", analyzer.FF, "PCE:", analyzer.PCE)
     analyzer.logData()
     analyzer.IVMultiPlot(saveName='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest/BestCells/IV_Multi3.png')
+    analyzer.histoPlot()
     #analyzer.IVCurve(saveName='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest/BestCells/IV_Single.png')

@@ -14,13 +14,15 @@ from pymatgen.analysis.diffraction.xrd import XRDCalculator
 from pymatgen.ext.matproj import MPRester
 import re
 from io import StringIO
+import os
 #from colors import *
-#import pandas as pd
+import pandas as pd
 #import importFile.importXRD as file
 
 class XRDAnalyzer:
     def __init__(self, vesta_path=None, importer = None):
-        #self.xrd_path = xrd_path
+        self.xrd_path = None
+        self.xrd_folderPath = None
         self.vesta_path = vesta_path
         self.xrd_data = None
         self.vesta_data = None
@@ -32,8 +34,12 @@ class XRDAnalyzer:
         self.intensities = None
         self.MP_API = "3ZAPXUD7Z91YReSGsjl1snF1d8uNkLDc"
         self.label = []
+        self.multiData = False
+        self.grainSizes = None
 
     def import_xrd_data(self, labelName ="NewData", pathName = ""):
+        self.xrd_path = pathName
+        self.xrd_folderPath = os.path.dirname(self.xrd_path)
         with open(pathName, "r") as file:
             lines = file.readlines()
 
@@ -55,6 +61,7 @@ class XRDAnalyzer:
             self.xrd_data = np.vstack((self.xrd_data, data))
             self.angles = np.vstack((self.angles, data[0]))
             self.intensities = np.vstack((self.intensities, data[1]))
+            self.multiData = True
 
         self.label.append(labelName)
         
@@ -62,36 +69,6 @@ class XRDAnalyzer:
         data = np.loadtxt(vestaPath).T
         self.vesta_data = (data[0], data[1])
         return self.vesta_data
-    #Newly added function:
-    def find_peaks_and_fwhm(self, height=20, prominence=20, distance=5, output_file="peaks_and_fwhm.txt"):
-        """
-        Identify peaks in the XRD data and calculate their FWHM.
-        Save results to a .txt file and store them in self.peaks_with_fwhm.
-
-        Parameters:
-        - height: minimum peak height
-        - prominence: minimum prominence of the peaks
-        - distance: minimum distance between peaks
-        - output_file: file name to save peak positions and FWHMs
-        """
-        if self.xrd_data is None:
-            raise ValueError("XRD data not loaded. Use import_xrd_data() first.")
-
-        x, y = self.xrd_data
-        peaks, properties = signal.find_peaks(y, height=height, prominence=prominence, distance=distance)
-
-        # Calculate FWHM using scipy.signal.peak_widths
-        widths_result = signal.peak_widths(y, peaks, rel_height=0.5)
-        fwhms = widths_result[0] * (x[1] - x[0])  # convert from samples to x-units
-
-        # Save data
-        results = np.column_stack((x[peaks], fwhms))
-        np.savetxt(output_file, results, header="Peak_Position  FWHM", fmt="%.4f")
-
-        # Save to class attribute
-        self.peaks_with_fwhm = results
-
-        return results
 
     def baselineCorrection(self): 
         #baselineFilter = Baseline(x_data = self.xrd_data[0])
@@ -116,25 +93,52 @@ class XRDAnalyzer:
         pass
 
 
-    def find_peaks(self, height=10, distance=5):
+    def find_peaks_and_FWHM(self, height=0.01, distance=1, log = False): #Peaks angle not always constant, use one of the time
         if self.xrd_data is None:
             raise ValueError("XRD data not loaded.")
-        angle, intensity = self.xrd_data
-        peaks, properties = signal.find_peaks(intensity, height=height, distance=distance, prominence = 20)
-        return peaks, properties
+        if self.multiData == False:
+            #Find Peaks
+            intensity = np.array(self.intensities).reshape(-1)
+            angle_array = np.array(self.angles).reshape(-1)
+            peaksIdx, properties = signal.find_peaks(intensity, height=height, distance=distance, prominence = 0.01)
+            angleTemp = self.angles.reshape(-1)
+            self.peakAngles = angleTemp[peaksIdx]
+            self.peakHeights = properties["peak_heights"]
+            self.peakProperties = properties
+            #Find FWHM:
+            peakWidth = signal.peak_widths(intensity, peaksIdx, rel_height=0.5)
+            widths = peakWidth[0]                    # 宽度（以 index 计）
+            left_ips = peakWidth[2]                  # 左边界（float index）
+            right_ips = peakWidth[3]
+            left_angles = np.interp(left_ips, np.arange(len(angle_array)), angle_array)
+            right_angles = np.interp(right_ips, np.arange(len(angle_array)), angle_array)
+            self.FWHM = right_angles - left_angles
+            #Calculate the grain size:
+            fwhm_deg = np.array(self.FWHM)
+            two_theta = np.array(self.peakAngles)
+            theta_rad = np.deg2rad(two_theta / 2)
+            beta_rad = np.deg2rad(fwhm_deg)
+            grain_sizes_A = (0.9 * 1.5406) / (beta_rad * np.cos(theta_rad))  # Unit: Amstrong, Scherrer equation
+            self.grainSizes = grain_sizes_A *0.1  # Unit: nm
+            if log == True:
+                df = pd.DataFrame({
+                    "2θ (deg)": self.peakAngles,
+                    "Relative Intensity (%)": self.peakHeights,
+                    "FWHM (deg)": self.FWHM,
+                    "Grain Size (nm)": self.grainSizes
+                })
+                fileName = "Peaks_and_FWHM.csv"
+                saveName = os.path.join(self.xrd_folderPath, fileName)
+                df.to_csv(saveName, index=False)
+                
+                
 
-    def getPeakAngles(self):
-        peaks, _ = self.find_peaks()
-        angles = self.xrd_data[0][peaks]
-        print("The 2θ peak positions are:", angles)
-        return angles
-
-    def getFWHM(self):
-        pass
-
-    def plotXRD(self, save_path="result_Test.png", graphColor = None, labelName="Label", save = True):
+    def plotXRD(self, save_path="result_Test.png", graphColor = None, labelName="Label", save = True, findPeaks = False):
         plt.figure(figsize=(7, 5), dpi=300)
         plt.plot(self.angles[0], self.intensities[0], label=labelName, color = graphColor)
+        if findPeaks == True:
+            for i in self.peakAngles:
+                plt.vlines(i, 0, -0.01, color = "black")
         plt.xlabel("Angle (2θ)")
         plt.ylabel("Intensity (counts)(or normalized)")
         plt.title("XRD Measurement")
@@ -182,11 +186,6 @@ class XRDAnalyzer:
         plt.grid()
         plt.savefig(savePath)
         plt.close()
-        
-    def savePeaks(self, file_path = 'Peaks.txt'):
-        angles = self.getPeakAngles()
-        np.savetxt(fname = file_path, X=angles, delimiter=",")
-        self.peakAngles = angles
 
 if __name__ == "__main__":
     from colors import *
