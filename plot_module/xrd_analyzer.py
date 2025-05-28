@@ -62,8 +62,30 @@ class XRDAnalyzer:
             self.angles = np.vstack((self.angles, data[0]))
             self.intensities = np.vstack((self.intensities, data[1]))
             self.multiData = True
-
+        #self.intensities = self.intensities / np.max(self.intensities)
         self.label.append(labelName)
+
+    def import_xrd_folder(self, folderPath):
+        self.xrd_folderPath = folderPath
+        txt_files = [f for f in os.listdir(folderPath) if f.endswith('.txt')]
+
+        if not txt_files:
+            raise FileNotFoundError(f"No .txt files found in folder: {folderPath}")
+
+        for file_name in txt_files:
+            full_path = os.path.join(folderPath, file_name)
+            label = os.path.splitext(file_name)[0]
+            self.import_xrd_data(labelName=label, pathName=full_path) 
+
+    def normalize(self):
+        min_val = np.min(self.intensities)
+        max_val = np.max(self.intensities)
+        range_val = max_val - min_val
+
+        if range_val == 0:
+            self.intensities = np.zeros_like(self.intensities)
+        else:
+            self.intensities = (self.intensities - min_val) / range_val
         
     def import_vesta_data(self, vestaPath = ""):
         data = np.loadtxt(vestaPath).T
@@ -92,7 +114,24 @@ class XRDAnalyzer:
     def MPAnalyzer(self):
         pass
 
+    def calculatePeaks(self, intensity, angle_array, height=0.01, distance = 1, log = False):
+        peaksIdx, properties = signal.find_peaks(intensity, height=height, distance=distance, prominence = 0.01)
+        #Find FWHM:
+        peakWidth = signal.peak_widths(intensity, peaksIdx, rel_height=0.5)
 
+        peakHeight =properties["peak_heights"]
+        widths = peakWidth[0]                   
+        left_ips = peakWidth[2]                 
+        right_ips = peakWidth[3]
+        left_angles = np.interp(left_ips, np.arange(len(angle_array)), angle_array)
+        right_angles = np.interp(right_ips, np.arange(len(angle_array)), angle_array)
+        FWHM = right_angles - left_angles
+        angleTemp = angle_array.reshape(-1)
+        return 
+
+    def calcGrainSize(self):
+        pass 
+    
     def find_peaks_and_FWHM(self, height=0.01, distance=1, log = False): #Peaks angle not always constant, use one of the time
         if self.xrd_data is None:
             raise ValueError("XRD data not loaded.")
@@ -102,9 +141,7 @@ class XRDAnalyzer:
             angle_array = np.array(self.angles).reshape(-1)
             peaksIdx, properties = signal.find_peaks(intensity, height=height, distance=distance, prominence = 0.01)
             angleTemp = self.angles.reshape(-1)
-            self.peakAngles = angleTemp[peaksIdx]
-            self.peakHeights = properties["peak_heights"]
-            self.peakProperties = properties
+            
             #Find FWHM:
             peakWidth = signal.peak_widths(intensity, peaksIdx, rel_height=0.5)
             widths = peakWidth[0]                    # 宽度（以 index 计）
@@ -112,6 +149,10 @@ class XRDAnalyzer:
             right_ips = peakWidth[3]
             left_angles = np.interp(left_ips, np.arange(len(angle_array)), angle_array)
             right_angles = np.interp(right_ips, np.arange(len(angle_array)), angle_array)
+            #Log them in the class:
+            self.peakAngles = angleTemp[peaksIdx]
+            self.peakHeights = properties["peak_heights"]
+            self.peakProperties = properties
             self.FWHM = right_angles - left_angles
             #Calculate the grain size:
             fwhm_deg = np.array(self.FWHM)
@@ -130,13 +171,39 @@ class XRDAnalyzer:
                 fileName = "Peaks_and_FWHM.csv"
                 saveName = os.path.join(self.xrd_folderPath, fileName)
                 df.to_csv(saveName, index=False)
+        #else: #Only analyze one given angle, try to have an array of length 20, and only log the first elements
                 
-                
+    def analyze_all_peaks(self, height=0.01, distance=1):
+        self.all_peak_info = []  # A list of dicts for each dataset
+
+        for i in range(len(self.intensities)):
+            intensity = self.intensities[i].reshape(-1)
+            angle = self.angles[i].reshape(-1)
+
+            # Find peaks
+            peaksIdx, properties = signal.find_peaks(intensity, height=height, distance=distance, prominence=0.01)
+            peak_angles = angle[peaksIdx]
+            peak_heights = intensity[peaksIdx]
+
+            # FWHM calculation
+            results_half = signal.peak_widths(intensity, peaksIdx, rel_height=0.5)
+            fwhm_vals = results_half[0] * (angle[1] - angle[0])  # FWHM in 2θ degrees
+            grain_sizes = 0.9 * 1.5406 / (np.radians(fwhm_vals) * np.cos(np.radians(peak_angles)))  # Scherrer Equation
+
+            # Store in dict
+            peak_data = {
+                "label": self.label[i] if i < len(self.label) else f"Sample_{i}",
+                "peak_angles": peak_angles,
+                "peak_heights": peak_heights,
+                "fwhm": fwhm_vals,
+                "grain_size_nm": grain_sizes
+            }
+            self.all_peak_info.append(peak_data)                
 
     def plotXRD(self, save_path="result_Test.png", graphColor = None, labelName="Label", save = True, findPeaks = False):
         plt.figure(figsize=(7, 5), dpi=300)
         plt.plot(self.angles[0], self.intensities[0], label=labelName, color = graphColor)
-        if findPeaks == True:
+        if findPeaks == True: #Search for the peaks
             for i in self.peakAngles:
                 plt.vlines(i, 0, -0.01, color = "black")
         plt.xlabel("Angle (2θ)")
@@ -147,7 +214,7 @@ class XRDAnalyzer:
             plt.savefig(save_path)
             plt.close()
 
-    def plotVesta(self, save_path="result_comparison.png"):
+    def plotVesta(self, save_path="result_comparison.png"):#Legacy
         angle, intensity = self.xrd_data
         angle_vesta, intensity_vesta = self.vesta_data
         #Normalizing the data
@@ -162,7 +229,6 @@ class XRDAnalyzer:
         plt.plot(angle_vesta, intensity_vesta, label="Simulated", alpha=0.9, color = colorVesta)
         for i in peaks:
             plt.vlines(i, 0, intensity[self.peaks]*0.9, color="black")
-
         plt.xlabel("Angle (2θ)")
         plt.ylabel("Intensity (Normalized)")
         plt.title("XRD vs Simulated Data")
@@ -170,15 +236,27 @@ class XRDAnalyzer:
         plt.savefig(save_path)
         plt.close()
 
-    def multiXRD(self, savePath = "multiResult.png", graphColor = None, direction = True):
+    def multiXRD(self, savePath = "multiResult.png", graphColor = None, direction = True, limiter = None):
         num = self.angles.shape[0]
-        plt.figure(figsize=(10,10), dpi = 300)
+        #self.intensities = self.intensities / np.max(self.intensities)
+        if limiter is None:
+            plt.figure(figsize=(10,10), dpi = 300)
+        else:
+            plt.figure(figsize=(9, 7), dpi=300)
         for i in range (0, num):
             angle = self.angles[i]
-            intensity = self.intensities[i] + 1.1 * i
-            plt.plot(angle, intensity, label = self.label[i], color = graphColor[i])
-        #Add sth to plot the simulated vesta peaks
-        
+            if limiter is None:
+                intensity = self.intensities[i] + 1.1 * i
+                plt.plot(angle, intensity, label = self.label[i], color = graphColor[i])
+            else:
+                intensity = self.intensities[i]
+                x_min = limiter - 0.5
+                x_max = limiter + 0.5
+                mask = (angle>=x_min)&(angle<=x_max)
+                angle_selected = angle[mask]
+                intensity_selected = intensity[mask]
+                plt.plot(angle_selected,intensity_selected, label = self.label[i], color = graphColor[i])
+                #plt.yscale("log")
         plt.xlabel("Angle (2θ)")
         plt.ylabel("Intensity (normalized)")
         plt.title("XRD Measurement")
@@ -186,6 +264,12 @@ class XRDAnalyzer:
         plt.grid()
         plt.savefig(savePath)
         plt.close()
+
+    def zoomInMultiPlot(self, savePath = "zoomInResult.png", graphColor = None):
+        angle = self.peakAngles.tolist()
+        for i in range (len(angle)):
+            self.multiXRD(savePath = f"multiResult_angle_{angle[i]}.png", graphColor=graphColor, limiter = angle[i])
+        
 
 if __name__ == "__main__":
     from colors import *

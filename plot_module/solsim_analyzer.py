@@ -150,13 +150,14 @@ class solarSimulator:
             #current = current.tolist()
             #voltage = voltage.tolist()
             lab = self.labels[i]
-            plt.plot(voltage, current, label=lab) #mA? 
+            figColor = colorMode[i]
+            plt.scatter(voltage, current, label=lab, color = figColor) #mA? 
         #self.counter = 0
         plt.ylabel("Current Density [mA/cm2]")#Too big!
         plt.xlabel("Voltage [V]")
         plt.ylim(0, )
         #plt.ylim(-10, 20)
-        #plt.xlim(-0.121, -0.8)
+        plt.xlim(-1,)
         plt.legend()
         plt.title("IV-Curve of the Samples")
         plt.grid()

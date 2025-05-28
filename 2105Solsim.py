@@ -2,9 +2,11 @@
 from plot_module.colors import color
 from plot_module.solsim_analyzer import solarSimulator
 
-figColor = color.matlab()
+figColor = color.red(multiData=True)
 
-folder = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest'
+folder = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest/BestCells'
 analyzer = solarSimulator(folderPath=folder)
 analyzer.loadFolderData()
-analyzer.histoPlot(saveName="PCE_Histo.png", color = figColor)
+analyzer.IVMultiPlot(saveName="IV_BestCells.png", colorMode = figColor)
+#analyzer.logData()
+#analyzer.histoPlot(saveName="BestCellsIV_21052025.png")
