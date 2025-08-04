@@ -175,21 +175,7 @@ class Spectroscopy:
             self.values_interp.append(value_interp_mask)
 
         #Find the average data from the 3 raw data, use the data name as the identifier, and generate a new identifier without the ending "-1, -2 or -3"
-        
-        for wl, val, fname in zip(self.wavelengths, self.values, self.fileNameRaw):
-            group_key = fname.split("_")[-1].split("-")[0]
-            group_dict[group_key].append((wl, val))
-        for group_key, spectra_list in group_dict.items():
-            if len(spectra_list) == 0:
-                continue
-            wavelengths = spectra_list[0][0]
-            wavelengths = spectra_list[0][0]
-            all_values = np.array([val for _, val in spectra_list])
-            mean_values = np.mean(all_values, axis=0)
-
-            self.grouped_wavelengths.append(wavelengths)
-            self.grouped_values.append(mean_values)
-            self.group_labels.append(group_key)
+            #Add an array for errors:
 
         #Dark measurement and light measurement:
         darkWavelength_interp = np.arange(self.darkWavelength.min(), self.darkWavelength.max(), 0.001)
@@ -205,6 +191,66 @@ class Spectroscopy:
         lMask = (lightWavelength_interp >= 334) & (lightWavelength_interp <= 883) #313 to 883
         self.lightWavelength_interp = lightWavelength_interp[lMask]
         self.lightValue_interp = lightValue_interp[lMask]
+
+    def average_value(self): #Do this tonight!!!
+        pass
+    def taucCalc_old(self): #Don't use this yet
+        '''This is the Tauc calculation, which is used to calculate the band gap of the material.
+        The Tauc plot is a plot of (Absorbance * photon energy)^0.5 vs photon energy.
+        The band gap can be found by fitting a line to the Tauc plot and finding the x-intercept.
+        The formula for the Tauc plot is:
+        Tauc = (Absorbance * photon energy)^0.5
+        Where photon energy = 1240 / wavelength (in nm)'''
+        lightCalibrated = self.lightValue_interp - self.darkValue_interp
+        epsilon = 1e-10
+        #X-Axis for tauc plot
+        self.eV = 1240 / np.array(self.wavelengths_interp[1])
+        for i in range(0, len(self.timestampAbsS)):
+            #Calculate the Absorbance:
+            #print("The time stamp is:", self.timestampAbsS[i])
+            valueCalibrated = np.array(self.values_interp[i]) - np.array(self.darkValue_interp)
+            Trans = valueCalibrated / lightCalibrated
+            #print("Trans:", Trans)
+            Absorb = - np.log10(np.maximum(Trans, epsilon))
+            #print("Abs:", Absorb)
+            #Calculate the Tauc and Band Gap: photonEnergy = 4.135667696e-15 * 2.99792e8 / wavelength
+            tauc = (Absorb * self.eV)**0.5
+            self.valueTaucs.append(tauc)
+            #print("Tauc Plot:", tauc)
+            #Do the band-gap fit:
+            mask = (self.eV >= 1.55) & (self.eV <= 1.6) #Select the range for band gap fit
+            x_selected = self.eV[mask]
+            y_selected = tauc[mask]
+            #if y_selected contains nan, return 0.
+            y_selected[np.isnan(y_selected)] = 0
+            #print("x and y selected", x_selected, y_selected)
+            #Fit the data:
+            model = LinearRegression()
+            #print("Label: ", self.labels[i], "x", x_selected, "y", y_selected)
+            model.fit(x_selected.reshape(-1, 1), y_selected.reshape(-1, 1))
+            b = model.intercept_[0] #This is the intercept with the y-axis!
+            slope = model.coef_[0] #This is the x-axis!
+            #print("b:", b, "slope:", slope, self.labels[i]) #
+            intercept = model.intercept_
+            x_intercept = - intercept / slope #Intercept with x axis
+            #Store the data:
+            self.bandGap.append(x_intercept.tolist()[0])
+            self.tauc_slope.append(slope)
+            self.tauc_slope_b.append(b)
+        # Log the band gap and tauc slope in a .csv file, and save the data in another folder called "Results", if there is no such folder, create it.
+        results_folder = os.path.join(self.folderPath, "Results")
+        if not os.path.exists(results_folder):
+            os.makedirs(results_folder)
+        timestamp_now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        results_file = os.path.join(results_folder, f"band_gap_results_{timestamp_now}.csv")
+        data = {
+            "timestamp": self.timestamps,
+            "band_gap": self.bandGap,
+            "tauc_slope": self.tauc_slope,
+            "tauc_slope_b": self.tauc_slope_b
+        }
+        df = pd.DataFrame(data)
+        df.to_csv(results_file, index=False)
 
     def taucCalc(self): #Don't use this yet
         '''This is the Tauc calculation, which is used to calculate the band gap of the material.
