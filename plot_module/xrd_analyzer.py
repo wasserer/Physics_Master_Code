@@ -12,8 +12,6 @@ from pybaselines import Baseline, utils
 from pymatgen.core import Structure
 from pymatgen.analysis.diffraction.xrd import XRDCalculator
 from pymatgen.ext.matproj import MPRester
-import re
-from io import StringIO
 import os
 #from colors import *
 import pandas as pd
@@ -114,24 +112,6 @@ class XRDAnalyzer:
     def MPAnalyzer(self):
         pass
 
-    def calculatePeaks(self, intensity, angle_array, height=0.01, distance = 1, log = False):
-        peaksIdx, properties = signal.find_peaks(intensity, height=height, distance=distance, prominence = 0.01)
-        #Find FWHM:
-        peakWidth = signal.peak_widths(intensity, peaksIdx, rel_height=0.5)
-
-        peakHeight =properties["peak_heights"]
-        widths = peakWidth[0]                   
-        left_ips = peakWidth[2]                 
-        right_ips = peakWidth[3]
-        left_angles = np.interp(left_ips, np.arange(len(angle_array)), angle_array)
-        right_angles = np.interp(right_ips, np.arange(len(angle_array)), angle_array)
-        FWHM = right_angles - left_angles
-        angleTemp = angle_array.reshape(-1)
-        return 
-
-    def calcGrainSize(self):
-        pass 
-    
     def find_peaks_and_FWHM(self, height=0.01, distance=1, log = False): #Peaks angle not always constant, use one of the time
         if self.xrd_data is None:
             raise ValueError("XRD data not loaded.")
@@ -200,7 +180,15 @@ class XRDAnalyzer:
             }
             self.all_peak_info.append(peak_data)                
 
-    def plotXRD(self, save_path="result_Test.png", graphColor = None, labelName="Label", save = True, findPeaks = False):
+    def plotXRD(self, save_path="result.png", saveFolderPath = None, graphColor = None, labelName="Label", save = True, findPeaks = False):
+        if saveFolderPath is None:  
+            if self.xrd_folderPath is None:
+                saveFolder = os.path.dirname(self.xrd_path)
+                saveFolderPath = os.path.join(saveFolder, save_path)
+            else:
+                saveFolderPath = os.path.join(self.xrd_path, save_path)
+        else:
+            pass
         plt.figure(figsize=(7, 5), dpi=300)
         plt.plot(self.angles[0], self.intensities[0], label=labelName, color = graphColor)
         if findPeaks == True: #Search for the peaks
@@ -211,7 +199,7 @@ class XRDAnalyzer:
         plt.title("XRD Measurement")
         plt.legend()
         if save == True:
-            plt.savefig(save_path)
+            plt.savefig(saveFolderPath)
             plt.close()
 
     def plotVesta(self, save_path="result_comparison.png"):#Legacy
@@ -236,39 +224,51 @@ class XRDAnalyzer:
         plt.savefig(save_path)
         plt.close()
 
-    def multiXRD(self, savePath = "multiResult.png", graphColor = None, direction = True, limiter = None):
+    def multiXRD(self, fileName = "multiResult.png", graphColor = None, direction = True, limiter = None, findPeaks = False):
         num = self.angles.shape[0]
         #self.intensities = self.intensities / np.max(self.intensities)
+        resultPath = os.path.join(self.xrd_folderPath, fileName)
         if limiter is None:
             plt.figure(figsize=(10,10), dpi = 300)
         else:
-            plt.figure(figsize=(9, 7), dpi=300)
+            plt.figure(figsize=(9, 7), dpi = 300)
         for i in range (0, num):
             angle = self.angles[i]
             if limiter is None:
                 intensity = self.intensities[i] + 1.1 * i
                 plt.plot(angle, intensity, label = self.label[i], color = graphColor[i])
-            else:
+                """
+                if self.peakAngles is None:
+                    pass
+                else:
+                    for i in self.peakAngles:
+                        plt.vlines(i, 0, -0.1, color = "black")"""
+            else: #If I want to limit it within certain angle
                 intensity = self.intensities[i]
-                x_min = limiter - 0.5
-                x_max = limiter + 0.5
+                x_min = limiter - 1
+                x_max = limiter + 1
                 mask = (angle>=x_min)&(angle<=x_max)
                 angle_selected = angle[mask]
                 intensity_selected = intensity[mask]
                 plt.plot(angle_selected,intensity_selected, label = self.label[i], color = graphColor[i])
                 #plt.yscale("log")
+        if findPeaks == True:
+            for i in self.peakAngles:
+                plt.vlines(i, 0, -0.1, color="black")
         plt.xlabel("Angle (2θ)")
         plt.ylabel("Intensity (normalized)")
         plt.title("XRD Measurement")
         plt.legend()
         plt.grid()
-        plt.savefig(savePath)
+        plt.savefig(resultPath)
         plt.close()
 
-    def zoomInMultiPlot(self, savePath = "zoomInResult.png", graphColor = None):
+    def zoomInMultiPlot(self, graphColor = None):
         angle = self.peakAngles.tolist()
         for i in range (len(angle)):
-            self.multiXRD(savePath = f"multiResult_angle_{angle[i]}.png", graphColor=graphColor, limiter = angle[i])
+            savePath = f"multiResult_angle_{angle[i]}.png"
+            resultPath = os.path.join(self.xrd_folderPath, savePath)
+            self.multiXRD(savePath = resultPath, graphColor=graphColor, limiter = angle[i])
         
 
 if __name__ == "__main__":
@@ -284,14 +284,6 @@ if __name__ == "__main__":
     print(analyzer.angles, type(analyzer.angles), analyzer.angles.shape)
     print(analyzer.intensities, type(analyzer.intensities), analyzer.intensities.shape)
     analyzer.import_vesta_data(vestaPath=vesta_path)
-    #analyzer.getPeakAngles()
-    #analyzer.baselineCorrection()
-    #analyzer.savePeaks()
     labelName = ["IPA"]
     analyzer.plotXRD(save_path = "testNor.png", graphColor= "red", labelName="IPA")
-    #analyzer.plotVesta("xrd_comparison.png")
-    #x, y = analyzer.find_peaks()
-    #print(x, y)
-    #print(analyzer.xrd_data[0])
-    #print(analyzer.xrd_data[1])
-    #analyzer.savePeaks()
+    
