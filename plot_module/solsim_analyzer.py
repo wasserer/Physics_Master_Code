@@ -138,7 +138,16 @@ class solarSimulator:
                     print("No number found in line 6.")
             else:
                 print("File has fewer than 6 lines.")
-
+            '''
+            cycleLine = lines[3]
+            match = re.search(r'\d+', cycleLine)
+            if match:
+                cycle_number = int(match.group())
+                print(cycle_number)
+            else:
+                print("No integer found.")
+            self.cycleNum.append(cycle_number)
+            '''
             files = pd.read_csv(file, skiprows=range(0, 20), header=None, names=['voltage', 'current', 'power', 'time'], sep=';')
             if self.currents is None:
                 self.data = np.asarray(files)
@@ -185,7 +194,7 @@ class solarSimulator:
         self.timestampAbsS = [(t - start_time).total_seconds() for t in self.timestamp]
         self.timestampAbsM = [s / 60 for s in self.timestampAbsS]
         self.timestampAbsH = [s / 3600 for s in self.timestampAbsS]
-        #Find out which cycle it was on:
+        #Find out which cycle it was on: THIS IS THE OLD METHOD, THE NEW WAY IS JUST TO LOOK UP IN THE FILE
         for i in range(len(self.timestampAbsS)):
             self.cycleNum.append((self.timestampAbsS[i]//5520+1))
 

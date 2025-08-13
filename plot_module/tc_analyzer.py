@@ -36,6 +36,11 @@ class ThermalCycling:
                     os.makedirs(target_folder, exist_ok=True)
                     shutil.move(file_path, os.path.join(target_folder, filename))
                     continue
+            # Process only .png files
+            elif filename.endswith('.png'):
+                target_folder = os.path.join(self.folderPath, "image")
+                os.makedirs(target_folder, exist_ok=True)
+                shutil.move(file_path, os.path.join(target_folder, filename))
 
 class PreTreat_Spectra:
     def __init__(self, folder):
