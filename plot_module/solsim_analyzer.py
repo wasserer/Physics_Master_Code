@@ -18,7 +18,7 @@ class solarSimulator:
     The data is in the form of a 2D array, where the first column is the voltage, the second column is the current, the third column is the power, and the fourth column is the time.
     The class will also calculate the important parameters such as Isc, Voc, I_MPP, V_MPP, FF, and PCE.
     The class will also plot the IV curve and the multi IV curve.'''
-    def __init__(self, filePath=None, folderPath = None, CSV = None):
+    def __init__(self, filePath=None, folderPath = None, CSV = None, refCurrent = 37):
         self.filePath = filePath
         self.folderPath = folderPath
         #self.saveLocation = os.path.join(folderPath, "Result")
@@ -40,7 +40,8 @@ class solarSimulator:
         self.V_MPP = None
         self.FF = None
         self.PCE = None
-        self.intensity = 100*37.0/47.98 #Unit: mW/cm^2
+        self.refCurrent = refCurrent
+        self.intensity = 100*self.refCurrent/47.98 #Unit: mW/cm^2
         self.cycleNum = []
 
     def calcIsc(self, voltage, current):
@@ -126,8 +127,8 @@ class solarSimulator:
             #Read the temperature from the file:                    
             with open(file, 'r') as data:
                 lines = data.readlines()
-            if len(lines) >= 6:
-                line6 = lines[5]  # 0-based index
+            if len(lines) >= 6: 
+                line6 = lines[6]  # 0-based index, old: line6 = lines[5]
                 print("Line 6:", line6.strip())
                 # Extract the first floating-point number in the line
                 match = re.search(r"[-+]?\d*\.\d+|\d+", line6)

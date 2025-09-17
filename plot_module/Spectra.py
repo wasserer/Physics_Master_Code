@@ -180,34 +180,46 @@ class Spectroscopy:
             self.lightValue = self.lightValue - self.darkValue
             pass #Need to be done!!!
     
-    def interpolate_masked(self): #Don't use this yet
-        #Interpolate Data:
-        for i in range (0, len(self.timestampAbsS)):
-            wavelength_interp = np.arange(self.wavelengths[i].min(), self.wavelengths[i].max(), 0.001)
+    def interpolate_masked(self, step=0.1, wl_min=334, wl_max=883):
+        """Interpolate all spectra onto a common grid with bounded resolution.
 
-            value_interp = np.interp(wavelength_interp, self.wavelengths[i], self.values[i])
-            #Mask the value:
-            mask = (wavelength_interp >= 334) & (wavelength_interp <= 883) #313 to 883
-            wavelength_interp_mask = wavelength_interp[mask]
-            value_interp_mask = value_interp[mask]
-            #Store the value:
-            self.wavelengths_interp.append(wavelength_interp_mask)
-            self.values_interp.append(value_interp_mask)
+        A coarse step keeps the memory footprint manageable given the large
+        number of spectra in a run. The default 0.1 nm step yields ~5k points
+        per spectrum instead of several hundred thousand.
+        """
+        if not self.wavelengths:
+            return
 
-        #Dark measurement and light measurement:
-        darkWavelength_interp = np.arange(self.darkWavelength.min(), self.darkWavelength.max(), 0.001)
-        darkValue_interp = np.interp(darkWavelength_interp, self.darkWavelength, self.darkValue)
-        
-        dMask = (darkWavelength_interp >= 334) & (darkWavelength_interp <= 883) #313 to 883
-        self.darkWavelength_interp = darkWavelength_interp[dMask]
-        self.darkValue_interp = darkValue_interp[dMask]
+        # Build a shared wavelength grid covering the requested range.
+        grid = np.arange(wl_min, wl_max + step / 2, step)
 
-        lightWavelength_interp = np.arange(self.lightWavelength.min(), self.lightWavelength.max(), 0.001)
-        lightValue_interp = np.interp(lightWavelength_interp, self.lightWavelength, self.lightValue)
+        # Clear any previous interpolation results if Pipeline is re-used.
+        self.wavelengths_interp = []
+        self.values_interp = []
 
-        lMask = (lightWavelength_interp >= 334) & (lightWavelength_interp <= 883) #313 to 883
-        self.lightWavelength_interp = lightWavelength_interp[lMask]
-        self.lightValue_interp = lightValue_interp[lMask]
+        for wavelength, value in zip(self.wavelengths, self.values):
+            # Ensure ascending order for np.interp
+            if wavelength[0] > wavelength[-1]:
+                wavelength = wavelength[::-1]
+                value = value[::-1]
+            interp_values = np.interp(grid, wavelength, value)
+            self.wavelengths_interp.append(grid)
+            self.values_interp.append(interp_values)
+
+        # Interpolate dark and light references onto the same grid.
+        dark_wl, dark_val = self.darkWavelength, self.darkValue
+        if dark_wl[0] > dark_wl[-1]:
+            dark_wl = dark_wl[::-1]
+            dark_val = dark_val[::-1]
+        self.darkWavelength_interp = grid
+        self.darkValue_interp = np.interp(grid, dark_wl, dark_val)
+
+        light_wl, light_val = self.lightWavelength, self.lightValue
+        if light_wl[0] > light_wl[-1]:
+            light_wl = light_wl[::-1]
+            light_val = light_val[::-1]
+        self.lightWavelength_interp = grid
+        self.lightValue_interp = np.interp(grid, light_wl, light_val)
 
     def average_value(self):
         """
@@ -358,15 +370,16 @@ class Spectroscopy:
         self.eV = 1240 / np.array(self.wavelengths_interp[1])
         if mean == False:
             for i in range(0, len(self.timestampAbsS)):
+                print("DEBUG:", self.fileNameRaw[i])
                 #Calculate the Absorbance:
-                #print("The time stamp is:", self.timestampAbsS[i])
+                print("The time stamp is:", self.timestampAbsS[i])
                 valueCalibrated = np.array(self.values_interp[i]) - np.array(self.darkValue_interp)
                 Trans = valueCalibrated / lightCalibrated
                 #print("Trans:", Trans)
                 Absorb = - np.log10(np.maximum(Trans, epsilon))
                 #print("Abs:", Absorb)
                 #Calculate the Tauc and Band Gap: photonEnergy = 4.135667696e-15 * 2.99792e8 / wavelength
-                tauc = (Absorb * self.eV)**0.5
+                tauc = (Absorb * self.eV)**2 #0.5
                 self.valueTaucs.append(tauc)
                 #print("Tauc Plot:", tauc)
                 #Do the band-gap fit:
@@ -378,7 +391,7 @@ class Spectroscopy:
                 #print("x and y selected", x_selected, y_selected)
                 #Fit the data:
                 model = LinearRegression()
-                #print("Label: ", self.labels[i], "x", x_selected, "y", y_selected)
+                print("Label: ", self.labels[i], "x", x_selected, "y", y_selected)
                 model.fit(x_selected.reshape(-1, 1), y_selected.reshape(-1, 1))
                 b = model.intercept_[0] #This is the intercept with the y-axis!
                 slope = model.coef_[0] #This is the x-axis!
@@ -392,6 +405,7 @@ class Spectroscopy:
         else:
             for i in range(0, len(self.values_interpAvr)):
                 print("The file name is:", self.fileNameAveraged[i])
+                print("DEBUG:", self.fileNameRaw[i])
                 valueCalibrated = np.array(self.values_interpAvr[i]) - np.array(self.darkValue_interp)
                 Trans = valueCalibrated / lightCalibrated
                 #print("Trans:", Trans)
@@ -446,12 +460,41 @@ class Spectroscopy:
         df = pd.DataFrame(taucData)
         df.to_csv(results_file, index=False)
 
-    def Pipeline(self, darkFolder):
-        '''This is the pipeline for the spectroscopy data, which is used in the thermal cycling setup.
-        It will import the data, do the calibration, and calculate the Tauc plot.   '''
-        self.importDark(darkFolder)
-        self.importData()
-        self.importLight()
+    def Pipeline(
+        self,
+        darkFolder=None,
+        lightFilePath=None,
+        newMode=True,
+        mean=True,
+        calculate_dark=False,
+        calculate_light=False,
+    ):
+        '''Run the full spectroscopy pipeline.
+
+        Parameters
+        - darkFolder: path to dark measurement file (back-compat name).
+        - lightFilePath: path to light reference file (optional).
+        - newMode: pass-through for importData(newMode).
+        - mean: compute Tauc on averaged spectra if True; per-scan if False.
+        - calculate_dark: subtract dark immediately on importDark if True.
+        - calculate_light: subtract dark immediately on importLight if True.
+        '''
+        # Import dark reference (respect provided path and calc flag)
+        if darkFolder is not None:
+            self.importDark(calculate=calculate_dark, darkFilePath=darkFolder)
+        else:
+            self.importDark(calculate=calculate_dark)
+
+        # Import measurement data
+        self.importData(newMode=newMode)
+
+        # Import light reference (respect provided path and calc flag)
+        if lightFilePath is not None:
+            self.importLight(calculate=calculate_light, lightFilePath=lightFilePath)
+        else:
+            self.importLight(calculate=calculate_light)
+
+        # Process and analyze
         self.interpolate_masked()
         self.average_value()
-        self.taucCalc(mean=True)
+        self.taucCalc(mean=mean)

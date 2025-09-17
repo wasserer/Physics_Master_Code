@@ -23,6 +23,7 @@ class UV_VIS_Analyzer:
         self.y_intercept = None
         self.slope = None
         self.x_at_max_slope = []
+        self.bandGap = []
         for fileName in os.listdir(self.folderPath):
             if fileName.endswith(".csv"):
                 filePath = os.path.join(self.folderPath, fileName)
@@ -45,14 +46,14 @@ class UV_VIS_Analyzer:
                             #print(self.waveLength)
                             if tauc == True:                                
                                 self.eVolt = (1240 / self.waveLength) # Conversion x axis
-                                self.tauc = (self.absorption * self.eVolt.reshape(1, -1))**0.5# 
+                                self.tauc = (self.absorption * self.eVolt.reshape(1, -1))**2# 
                             else:
                                 pass
                         else:
                             #print(key)
                             self.absorption = np.vstack((self.absorption, data[1]))
                             if tauc == True:
-                                taucT = (data[1].reshape(1, -1)*self.eVolt.reshape(1, -1))**0.5 # Could use: \alpha = 2.303 * A / d , d = 600 nm for PIN-Perovskite
+                                taucT = (data[1].reshape(1, -1)*self.eVolt.reshape(1, -1))**2 # Could use: \alpha = 2.303 * A / d , d = 600 nm for PIN-Perovskite
                                 self.tauc = np.vstack((self.tauc, taucT))#
                             else:
                                 pass
@@ -113,12 +114,14 @@ class UV_VIS_Analyzer:
                 self.slope = [slope[0]]
                 #print("Slope first:", self.slope, type(self.slope))#Debug
                 self.y_intercept = [b]
+                self.bandGap.append(x_intercept.tolist()[0])
             else:
                 tauc_slope_data = self.tauc_x*slope + b
                 self.tauc_slope_data = np.vstack((self.tauc_slope_data, tauc_slope_data.reshape(1, -1)))
                 #print((slope[0], type(slope[0])), self.label[i], "Rest before line")
                 self.slope.append(slope[0])
                 self.y_intercept.append(b)
+                self.bandGap.append(x_intercept.tolist()[0])
                 #self.tauc_intercept = self.tauc_intercept.append(intercept)
                 
         
@@ -129,9 +132,9 @@ class UV_VIS_Analyzer:
             plt.plot(self.eVolt, self.tauc[i], color = figColor[i], label = self.label[i])
             if fit is True:
                 print("Fitting right now!")
-                plt.plot(self.eVolt, (self.eVolt*self.slope[i] + self.y_intercept[i]), color = figColor[i]) #Change the slope as a equation based on self.tauc_x, and make it - - - like
+                plt.plot(self.eVolt, (self.eVolt*self.slope[i] + self.y_intercept[i]), color = figColor[i], label = f"Fit: BandGap = {self.bandGap[i]}") #Change the slope as a equation based on self.tauc_x, and make it - - - like
         plt.xlim(1, 2.0)
-        plt.ylim(-0.25, 2)
+        plt.ylim(-0.25, 20)
         plt.xlabel("Wavelength")
         plt.ylabel("Intensity")
         plt.legend()
