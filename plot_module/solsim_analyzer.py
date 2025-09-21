@@ -43,6 +43,8 @@ class solarSimulator:
         self.refCurrent = refCurrent
         self.intensity = 100*self.refCurrent/47.98 #Unit: mW/cm^2
         self.cycleNum = []
+        self.Rs = None
+        self.Rp = None
 
     def calcIsc(self, voltage, current):
         try:
@@ -61,6 +63,37 @@ class solarSimulator:
         except Exception as e:
             print(f"Error:", e)
             return 0
+
+    def calcRsRp(self, voltage, current):
+        try:
+            voltage = np.asarray(voltage, dtype=float).ravel()
+            current = np.asarray(current, dtype=float).ravel()
+
+            valid_mask = ~(np.isnan(voltage) | np.isnan(current))
+            voltage = voltage[valid_mask]
+            current = current[valid_mask]
+
+            if voltage.size < 2 or current.size < 2:
+                Rs = np.nan
+                Rp = np.nan
+                return Rs, Rp
+
+            window_size = min(voltage.size, max(5, voltage.size // 10))
+
+            near_sc_idx = np.argsort(np.abs(voltage))[:window_size]
+            slope_ic = np.polyfit(voltage[near_sc_idx], current[near_sc_idx], 1)[0]
+            Rp = np.inf if np.isclose(slope_ic, 0.0) else np.abs(1.0 / slope_ic)
+
+            near_oc_idx = np.argsort(np.abs(current))[:window_size]
+            slope_vi = np.polyfit(current[near_oc_idx], voltage[near_oc_idx], 1)[0]
+            Rs = np.inf if np.isclose(slope_vi, 0.0) else np.abs(slope_vi)
+
+            return Rs, Rp
+        except Exception as e:
+            print(f"Error:", e)
+            Rs = np.nan
+            Rp = np.nan
+            return Rs, Rp
 
     def calcMPP(self, current, voltage):
         try:
@@ -86,7 +119,6 @@ class solarSimulator:
             return 0, 0, 0, 0
 
     def loadFileData(self):
-        
         files = pd.read_csv(self.filePath, skiprows=range(0, 21), header=None, names=['voltage', 'current', 'power', 'time'], sep='\s+')
         self.data = np.asarray(files)
         self.data = self.data.T
@@ -108,6 +140,8 @@ class solarSimulator:
         cycleCounter = 1
         self.temperature = []
         self.timestamp = []
+        self.Rs = []
+        self.Rp = []
         self.dat_files = [f for f in os.listdir(self.folderPath) if f.endswith('.dat')]
         self.Isc, self.Voc, self.I_MPP, self.V_MPP, self.FF, self.PCE = [[] for _ in range(6)]
         for name in self.dat_files:
@@ -159,9 +193,10 @@ class solarSimulator:
                 self.times = self.data[3].reshape(1, -1)
                 self.labels.append(labelName)
                 #Calculations:                
-                Isc = self.calcIsc(voltage = self.data[0], current=self.data[1])
-                Voc = self.calcVoc(voltage = self.data[0], current=self.data[1])                   
+                Isc = self.calcIsc(voltage = self.data[0], current=self.data[1]*self.CDC)
+                Voc = self.calcVoc(voltage = self.data[0], current=self.data[1]*self.CDC)                   
                 I_MPP, V_MPP, FF, PCE = self.calcMPP(voltage = self.data[0], current=self.data[1]*self.CDC)
+                Rs, Rp = self.calcRsRp(voltage = self.data[0], current = self.data[1]*self.CDC)
             else:
                 data = np.asarray(files)
                 data = data.T
@@ -176,6 +211,7 @@ class solarSimulator:
                 #Calculation for cell data:
                 Isc = self.calcIsc(voltage = data[0], current=data[1]*self.CDC)
                 Voc = self.calcVoc(voltage = data[0], current=data[1]*self.CDC)
+                Rs, Rp = self.calcRsRp(voltage = data[0], current = data[1]*self.CDC)
                 I_MPP, V_MPP, FF, PCE = self.calcMPP(voltage = data[0], current=data[1]*self.CDC)
             self.Isc.append(Isc)
             self.Voc.append(Voc)
@@ -183,11 +219,43 @@ class solarSimulator:
             self.V_MPP.append(V_MPP)
             self.FF.append(FF)
             self.PCE.append(PCE)
+            self.Rs.append(Rs)
+            self.Rp.append(Rp)
 
         #Sort Data
-        combined = list(zip(self.timestamp, self.Isc, self.voltages, self.currents, self.data, self.Voc, self.PCE, self.I_MPP, self.V_MPP, self.FF, self.labels, self.temperature))
+        combined = list(zip(
+            self.timestamp,
+            self.Isc,
+            self.voltages,
+            self.currents,
+            self.data,
+            self.Voc,
+            self.PCE,
+            self.I_MPP,
+            self.V_MPP,
+            self.FF,
+            self.labels,
+            self.temperature,
+            self.Rs,
+            self.Rp,
+        ))
         sorted_combined = sorted(combined, key=lambda x: x[0])
-        self.timestamp, self.Isc, self.voltages, self.currents, self.data, self.Voc, self.PCE, self.I_MPP, self.V_MPP, self.FF, self.labels, self.temperature = zip(*sorted_combined)
+        (
+            self.timestamp,
+            self.Isc,
+            self.voltages,
+            self.currents,
+            self.data,
+            self.Voc,
+            self.PCE,
+            self.I_MPP,
+            self.V_MPP,
+            self.FF,
+            self.labels,
+            self.temperature,
+            self.Rs,
+            self.Rp,
+        ) = zip(*sorted_combined)
         #Normalizing all the self.PCE values to its highest value, because the solar simulator is not calibrated.
         maxPCE = max(self.PCE)
         self.PCE = [pce / maxPCE * 100 for pce in self.PCE]
@@ -215,6 +283,8 @@ class solarSimulator:
             'V_MPP [V]': self.V_MPP,
             'FF': self.FF,
             'PCE [%]': self.PCE,
+            'Rs': self.Rs,
+            'Rp': self.Rp
         }
         df = pd.DataFrame(data)
         df.to_csv(result_file, index=False)
@@ -225,6 +295,8 @@ class solarSimulator:
         The class will also calculate the important parameters such as Isc, Voc, I_MPP, V_MPP, FF, and PCE.'''
         self.dat_files = [f for f in os.listdir(self.folderPath) if f.endswith('.dat')]
         self.Isc, self.Voc, self.I_MPP, self.V_MPP, self.FF, self.PCE = [[] for _ in range(6)]
+        self.Rp = []
+        self.Rs = []
         for name in self.dat_files:
             file = os.path.join(self.folderPath, name)
             mainName, ext = name, ext = os.path.splitext(name) #Newly added
@@ -242,6 +314,7 @@ class solarSimulator:
                 Isc = self.calcIsc(voltage = self.data[0], current=self.data[1])
                 Voc = self.calcVoc(voltage = self.data[0], current=self.data[1])                   
                 I_MPP, V_MPP, FF, PCE = self.calcMPP(voltage = self.data[0], current=self.data[1]*self.CDC)
+                Rs, Rp = self.calcRsRp(voltage = self.data[0], current = self.data[1])
             else:
                 data = np.asarray(files)
                 data = data.T
@@ -256,12 +329,15 @@ class solarSimulator:
                 Isc = self.calcIsc(voltage = data[0], current=data[1]*self.CDC)
                 Voc = self.calcVoc(voltage = data[0], current=data[1]*self.CDC)
                 I_MPP, V_MPP, FF, PCE = self.calcMPP(voltage = data[0], current=data[1]*self.CDC)
+                Rs, Rp = self.calcRsRp(voltage = self.data[0], current = self.data[1])
             self.Isc.append(Isc)
             self.Voc.append(Voc)
             self.I_MPP.append(I_MPP)
             self.V_MPP.append(V_MPP)
             self.FF.append(FF)
             self.PCE.append(PCE)
+            self.Rs.append(Rs)
+            self.Rp.append(Rp)
 
     def logData(self):
         fileName = "result_log.csv"
@@ -274,7 +350,9 @@ class solarSimulator:
             'I_MPP':  self.I_MPP,
             'V_MPP':  self.V_MPP,
             'FF':     self.FF,
-            'PCE':    self.PCE
+            'PCE':    self.PCE,
+            'Rs': self.Rs,
+            'Rp': self.Rp
         }
         df = pd.DataFrame(data)
         df.to_csv(target, index=False)

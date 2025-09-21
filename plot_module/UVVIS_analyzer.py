@@ -24,119 +24,229 @@ class UV_VIS_Analyzer:
         self.slope = None
         self.x_at_max_slope = []
         self.bandGap = []
-        for fileName in os.listdir(self.folderPath):
-            if fileName.endswith(".csv"):
-                filePath = os.path.join(self.folderPath, fileName)
-                if GermanMode == True:
-                    df = pd.read_csv(filePath, decimal=",", sep=";")
-                else:
-                    df = pd.read_csv(filePath, decimal=".", sep=",")
-                data = df.values.T
-                key = fileName.replace(".csv", "")
-                match key:
-                    case k if k.startswith("Dark"):
-                        self.dark = data[1]
-                    case k if k.startswith("Light"):
-                        self.light = data[1]
-                    case _:
-                        self.label.append(key)
-                        if self.waveLength is None:
-                            self.waveLength = data[0]
-                            self.absorption = data[1].reshape(1, -1)
-                            #print(self.waveLength)
-                            if tauc == True:                                
-                                self.eVolt = (1240 / self.waveLength) # Conversion x axis
-                                self.tauc = (self.absorption * self.eVolt.reshape(1, -1))**2# 
-                            else:
-                                pass
-                        else:
-                            #print(key)
-                            self.absorption = np.vstack((self.absorption, data[1]))
-                            if tauc == True:
-                                taucT = (data[1].reshape(1, -1)*self.eVolt.reshape(1, -1))**2 # Could use: \alpha = 2.303 * A / d , d = 600 nm for PIN-Perovskite
-                                self.tauc = np.vstack((self.tauc, taucT))#
-                            else:
-                                pass
+        self._german_mode = GermanMode
+        self._use_tauc = tauc
 
-    def UV_multiPlot(self, saveName = "Result.png", figColor = None):
+        csv_files = []
+        for root, _, files in os.walk(self.folderPath):
+            for file in files:
+                if file.lower().endswith(".csv"):
+                    csv_files.append(os.path.join(root, file))
+        csv_files.sort()
+
+        for file_path in csv_files:
+            wave_length, absorption = self._load_numeric_spectrum(file_path)
+            if wave_length is None or absorption is None:
+                continue
+
+            relative_name = os.path.relpath(file_path, self.folderPath)
+            key = os.path.splitext(relative_name)[0]
+            base_lower = os.path.basename(key).lower()
+            label = key.replace(os.sep, " / ")
+
+            if base_lower.startswith("dark"):
+                self.dark = absorption
+                continue
+            if base_lower.startswith("light"):
+                self.light = absorption
+                continue
+
+            if self.waveLength is None:
+                self.waveLength = wave_length
+                self.absorption = absorption.reshape(1, -1)
+                self.label.append(label)
+                if self._use_tauc:
+                    self.eVolt = 1240 / self.waveLength
+                    self.tauc = (self.absorption * self.eVolt.reshape(1, -1)) ** 2
+                continue
+
+            if wave_length.shape != self.waveLength.shape or not np.allclose(
+                wave_length, self.waveLength
+            ):
+                print(
+                    f"Skipping '{fileName}' because its wavelength grid does not match the first spectrum."
+                )
+                continue
+
+            self.label.append(label)
+            self.absorption = np.vstack((self.absorption, absorption.reshape(1, -1)))
+            if self._use_tauc:
+                tauc_values = (absorption.reshape(1, -1) * self.eVolt.reshape(1, -1)) ** 2
+                self.tauc = np.vstack((self.tauc, tauc_values))
+
+        if self._use_tauc and self.tauc is not None:
+            self.tauc_x = self.eVolt
+            self.tauc_slope_data = None
+            self.tauc_intercept = None
+
+    def _load_numeric_spectrum(self, filePath):
+        primary = {
+            "decimal": "," if self._german_mode else ".",
+            "sep": ";" if self._german_mode else ",",
+        }
+
+        fallbacks = [
+            {"decimal": ",", "sep": ";"},
+            {"decimal": ".", "sep": ","},
+            {"decimal": ",", "sep": ","},
+            {"decimal": ".", "sep": ";"},
+        ]
+
+        parse_options = [primary] + [opt for opt in fallbacks if opt != primary]
+
+        for option in parse_options:
+            try:
+                df = pd.read_csv(
+                    filePath,
+                    decimal=option["decimal"],
+                    sep=option["sep"],
+                    skipinitialspace=True,
+                )
+            except Exception as exc:
+                last_error = exc
+                continue
+
+            if df.empty or df.shape[1] < 2:
+                continue
+
+            x = pd.to_numeric(df.iloc[:, 0], errors="coerce")
+            y = pd.to_numeric(df.iloc[:, 1], errors="coerce")
+
+            valid_mask = ~(x.isna() | y.isna())
+            if not valid_mask.any():
+                continue
+
+            wave_length = x[valid_mask].to_numpy(dtype=float)
+            absorption = y[valid_mask].to_numpy(dtype=float)
+
+            if wave_length.size == 0 or absorption.size == 0:
+                continue
+
+            return wave_length, absorption
+
+        if 'last_error' in locals():
+            print(
+                f"Skipping '{os.path.basename(filePath)}' due to read error after trying multiple formats: {last_error}"
+            )
+        else:
+            print(
+                f"Skipping '{os.path.basename(filePath)}' because no numeric wavelength/absorption columns were detected."
+            )
+        return None, None
+
+    def UV_multiPlot(self, saveName = "Result_1909.png", figColor = None):
         savePath = os.path.join(self.folderPath, saveName)
         plt.figure(figsize = (9, 7), dpi = 300)
+        if self.absorption is None or len(self.label) == 0:
+            raise ValueError("No spectra loaded. Make sure the folder contains valid CSV spectra files.")
+
+        if figColor is None:
+            color_cycle = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
+        else:
+            color_cycle = list(figColor)
+
+        if not color_cycle:
+            color_cycle = [None] * len(self.label)
+
         for i in range(len(self.label)):
-            plt.plot(self.waveLength, self.absorption[i], color = figColor[i], label = self.label[i])
+            color = color_cycle[i % len(color_cycle)]
+            plt.plot(self.waveLength, self.absorption[i], color=color, label=self.label[i])
         plt.xlabel("Wavelength [nm]")
         plt.ylabel("Reflection [%]") # or absorption etc.
         plt.legend()
         plt.grid()
         plt.savefig(savePath)
 
-    def fit(self, start=1.4, end=1.8): #Rewrite!!!! Make it auto detectable!!!!
-        for i in range(0, len(self.label)):
-            #Import Data:
-            y = self.tauc[i] #The y value of the tauc plot
-            x = self.eVolt  #X value of the tauc plot(Convert to electron volt)
-            #Classic Method:
-        #New Method:
-            searchRange = (x>=start)&(x<end)
-            x_preSelected = x[searchRange].flatten()
-            y_preSelected = y[searchRange].flatten()
-            #print("x_pre",x_preSelected)
-            dy = np.diff(y_preSelected)
-            dx = np.diff(x_preSelected)
-            slope = dy / dx  # 相当于 dy/dx
-            #print("Slope:",slope)
-            max_index = np.argmax(slope)
-            #print("type max", type(max_index))
-            x_at_max_slope = (x_preSelected[max_index] + x_preSelected[max_index + 1]) / 2
-            #self.x_at_max_slope.append(x_at_max_slope)
-            # Step 2: 找最大斜率的位置（注意 slope 长度是 n-1）
-            max_index = np.argmax(x)
-            #print("max:",x_at_max_slope)
-            realMask = (x>=(x_at_max_slope-0.02))&(x<=(x_at_max_slope+0.02))
-            x_selected = x[realMask].reshape(1, -1).T
-            y_selected = y[realMask].reshape(1, -1).T
-            #print("x_selected", x_selected)
-            model = LinearRegression()
-            print(self.label[i], "x", x_selected, "y", y_selected)
-            model.fit(x_selected, y_selected)
-            b = model.intercept_[0]
-            slope = model.coef_[0]
-            #print("b:", b, "slope:", slope, self.label[i]) #
-            intercept = model.intercept_
-            x_intercept = - intercept/ slope #Intercept with x axis
+    def compute_tauc(self, energy_window=(1.55, 1.6), exponent=2.0):
+        if self.absorption is None or len(self.label) == 0:
+            raise ValueError("No spectra loaded. Make sure the folder contains valid CSV spectra files.")
 
-            
-            #print(x_intercept)
-            #Store Data:
-            if self.tauc_x is None:
-                self.tauc_x = x_selected
-                tauc_slope_data = self.tauc_x*slope + b
-                self.tauc_slope_data = tauc_slope_data.reshape(1, -1)
-                self.slope = [slope[0]]
-                #print("Slope first:", self.slope, type(self.slope))#Debug
-                self.y_intercept = [b]
-                self.bandGap.append(x_intercept.tolist()[0])
+        epsilon = 1e-10
+        self.eVolt = 1240 / self.waveLength
+        light_calibrated = None
+        if self.light is not None and self.dark is not None:
+            light_calibrated = np.asarray(self.light, dtype=float) - np.asarray(self.dark, dtype=float)
+
+        tauc_rows = []
+        slopes = []
+        intercepts = []
+        band_gaps = []
+        x_midpoints = []
+        fit_rows = []
+
+        window_mask = (self.eVolt >= energy_window[0]) & (self.eVolt <= energy_window[1])
+
+        for idx, label in enumerate(self.label):
+            spectrum = np.asarray(self.absorption[idx], dtype=float)
+
+            if light_calibrated is not None and spectrum.shape == light_calibrated.shape:
+                value_calibrated = spectrum - np.asarray(self.dark, dtype=float)
+                safe_light = np.where(np.abs(light_calibrated) < epsilon, np.sign(light_calibrated) * epsilon, light_calibrated)
+                transmission = value_calibrated / safe_light
+                transmission = np.clip(transmission, epsilon, None)
+                absorbance = -np.log10(transmission)
             else:
-                tauc_slope_data = self.tauc_x*slope + b
-                self.tauc_slope_data = np.vstack((self.tauc_slope_data, tauc_slope_data.reshape(1, -1)))
-                #print((slope[0], type(slope[0])), self.label[i], "Rest before line")
-                self.slope.append(slope[0])
-                self.y_intercept.append(b)
-                self.bandGap.append(x_intercept.tolist()[0])
-                #self.tauc_intercept = self.tauc_intercept.append(intercept)
-                
-        
-    def tau_Plot(self, saveName = "tau_result1.png", figColor = None, fit = None):
+                absorbance = np.clip(spectrum, 0, None)
+
+            tauc = np.power(np.clip(absorbance * self.eVolt, epsilon, None), exponent)
+            tauc_rows.append(tauc)
+
+            x_selected = self.eVolt[window_mask]
+            y_selected = tauc[window_mask]
+
+            if x_selected.size >= 2 and not np.allclose(y_selected, y_selected[0]):
+                model = LinearRegression()
+                model.fit(x_selected.reshape(-1, 1), y_selected)
+                slope = float(model.coef_[0])
+                intercept = float(model.intercept_)
+                band_gap = -intercept / slope if slope != 0 else np.nan
+                fit_line = slope * self.eVolt + intercept
+            else:
+                slope = np.nan
+                intercept = np.nan
+                band_gap = np.nan
+                fit_line = np.full_like(self.eVolt, np.nan)
+
+            slopes.append(slope)
+            intercepts.append(intercept)
+            band_gaps.append(band_gap)
+            fit_rows.append(fit_line)
+            x_midpoints.append(float(np.mean(x_selected)) if x_selected.size else np.nan)
+
+        self.tauc = np.vstack(tauc_rows)
+        self.tauc_slope_data = np.vstack(fit_rows)
+        self.slope = slopes
+        self.y_intercept = intercepts
+        self.bandGap = band_gaps
+        self.x_at_max_slope = x_midpoints
+        self.tauc_x = self.eVolt
+        self.tauc_intercept = intercepts
+        self.tauc_energy_window = energy_window
+        self.tauc_exponent = exponent
+
+    def tau_Plot(self, saveName = "tau_result1.png", figColor = None, fit = None, energy_window=(1.55, 1.6), exponent=2.0):
         savePath = os.path.join(self.folderPath, saveName)
         plt.figure(figsize = (9, 7), dpi = 300)
+        self.compute_tauc(energy_window=energy_window, exponent=exponent)
+
+        if figColor is None:
+            color_cycle = plt.rcParams["axes.prop_cycle"].by_key().get("color", [])
+        else:
+            color_cycle = list(figColor)
+        if not color_cycle:
+            color_cycle = [None] * len(self.label)
+
         for i in range(len(self.label)):
-            plt.plot(self.eVolt, self.tauc[i], color = figColor[i], label = self.label[i])
-            if fit is True:
-                print("Fitting right now!")
-                plt.plot(self.eVolt, (self.eVolt*self.slope[i] + self.y_intercept[i]), color = figColor[i], label = f"Fit: BandGap = {self.bandGap[i]}") #Change the slope as a equation based on self.tauc_x, and make it - - - like
-        plt.xlim(1, 2.0)
-        plt.ylim(-0.25, 20)
-        plt.xlabel("Wavelength")
-        plt.ylabel("Intensity")
+            color = color_cycle[i % len(color_cycle)]
+            plt.plot(self.eVolt, self.tauc[i], color = color, label = self.label[i])
+            if fit:
+                fit_line = self.tauc_slope_data[i]
+                if not np.all(np.isnan(fit_line)):
+                    plt.plot(self.eVolt, fit_line, linestyle="--", color = color, label = f"Fit: Eg = {self.bandGap[i]:.3f} eV")
+        #plt.xlim(energy_window[0] - 0.1, energy_window[1] + 0.1)
+        #plt.ylim(bottom = 0)
+        plt.xlabel("Photon energy [eV]")
+        plt.ylabel(f"(Absorbance·E)^{{{exponent}}}")
         plt.legend()
         plt.grid()
         plt.savefig(savePath)
@@ -150,7 +260,7 @@ class UV_VIS_Analyzer:
             "Slope": self.slope,
             "Y_Intercept": self.y_intercept,
             "X_at_max_slope": self.x_at_max_slope,
-            "X_intercept (Eg)": [-b / a for a, b in zip(self.slope, self.y_intercept)]
+            "X_intercept (Eg)": self.bandGap
         }
 
         # 转换为 DataFrame
@@ -162,13 +272,13 @@ class UV_VIS_Analyzer:
 
 if __name__ == "__main__":
     figcolor = ["#0072BD", "#D95319", "#EDB120", "#7E2F8E", "#77AC30", "#4DBEEE", "#A2142F"]
-    df = UV_VIS_Analyzer(folderPath='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/UV-VIS/0506/Compare_Cs', GermanMode=True)
+    df = UV_VIS_Analyzer(folderPath='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/UV-VIS/After_TC_1909/Data', GermanMode=False)
     #print("Light",df.light, type(df.light))
     #print("Dark:", df.dark)
     #print(df.absorption.shape)
     #print(df.label)
     df.UV_multiPlot(figColor=figcolor)
-    df.fit()
+    #f.fit()
     df.tau_Plot(figColor=figcolor, fit=True)
-    df.logData()
+    #df.logData()
     
