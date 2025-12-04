@@ -157,7 +157,7 @@ class UV_VIS_Analyzer:
         plt.grid()
         plt.savefig(savePath)
 
-    def compute_tauc(self, energy_window=(1.55, 1.6), exponent=2.0):
+    def compute_tauc(self, energy_window=(1.55, 1.65), exponent=2.0):
         if self.absorption is None or len(self.label) == 0:
             raise ValueError("No spectra loaded. Make sure the folder contains valid CSV spectra files.")
 
@@ -175,6 +175,8 @@ class UV_VIS_Analyzer:
         fit_rows = []
 
         window_mask = (self.eVolt >= energy_window[0]) & (self.eVolt <= energy_window[1])
+
+        slope_window_half_width = 0.02
 
         for idx, label in enumerate(self.label):
             spectrum = np.asarray(self.absorption[idx], dtype=float)
@@ -195,23 +197,54 @@ class UV_VIS_Analyzer:
             y_selected = tauc[window_mask]
 
             if x_selected.size >= 2 and not np.allclose(y_selected, y_selected[0]):
-                model = LinearRegression()
-                model.fit(x_selected.reshape(-1, 1), y_selected)
-                slope = float(model.coef_[0])
-                intercept = float(model.intercept_)
-                band_gap = -intercept / slope if slope != 0 else np.nan
-                fit_line = slope * self.eVolt + intercept
+                best_slope = None
+                best_intercept = None
+                best_midpoint = np.nan
+
+                for x_center in x_selected:
+                    local_mask = np.abs(x_selected - x_center) <= slope_window_half_width
+                    if np.count_nonzero(local_mask) < 2:
+                        continue
+
+                    x_local = x_selected[local_mask]
+                    y_local = y_selected[local_mask]
+                    if np.allclose(y_local, y_local[0]):
+                        continue
+
+                    model = LinearRegression()
+                    model.fit(x_local.reshape(-1, 1), y_local)
+                    local_slope = float(model.coef_[0])
+                    local_intercept = float(model.intercept_)
+
+                    if best_slope is None or local_slope > best_slope:
+                        best_slope = local_slope
+                        best_intercept = local_intercept
+                        best_midpoint = float(np.mean(x_local))
+
+                if best_slope is not None:
+                    slope = best_slope
+                    intercept = best_intercept
+                    band_gap = -intercept / slope if slope != 0 else np.nan
+                    fit_line = slope * self.eVolt + intercept
+                    x_midpoint = best_midpoint
+                else:
+                    slope = np.nan
+                    intercept = np.nan
+                    band_gap = np.nan
+                    fit_line = np.full_like(self.eVolt, np.nan)
+                    x_midpoint = np.nan
             else:
                 slope = np.nan
                 intercept = np.nan
                 band_gap = np.nan
                 fit_line = np.full_like(self.eVolt, np.nan)
+                x_midpoint = np.nan
 
             slopes.append(slope)
             intercepts.append(intercept)
             band_gaps.append(band_gap)
             fit_rows.append(fit_line)
-            x_midpoints.append(float(np.mean(x_selected)) if x_selected.size else np.nan)
+            x_midpoints.append(x_midpoint if x_selected.size else np.nan)
 
         self.tauc = np.vstack(tauc_rows)
         self.tauc_slope_data = np.vstack(fit_rows)
@@ -226,7 +259,7 @@ class UV_VIS_Analyzer:
 
     def tau_Plot(self, saveName = "tau_result1.png", figColor = None, fit = None, energy_window=(1.55, 1.6), exponent=2.0):
         savePath = os.path.join(self.folderPath, saveName)
-        plt.figure(figsize = (9, 7), dpi = 300)
+        plt.figure(figsize = (7, 5), dpi = 300)
         self.compute_tauc(energy_window=energy_window, exponent=exponent)
 
         if figColor is None:
@@ -243,12 +276,13 @@ class UV_VIS_Analyzer:
                 fit_line = self.tauc_slope_data[i]
                 if not np.all(np.isnan(fit_line)):
                     plt.plot(self.eVolt, fit_line, linestyle="--", color = color, label = f"Fit: Eg = {self.bandGap[i]:.3f} eV")
-        #plt.xlim(energy_window[0] - 0.1, energy_window[1] + 0.1)
-        #plt.ylim(bottom = 0)
+        plt.xlim(1.4, 1.7)
+        plt.ylim(0, 10)
+        #plt.yscale("log")
         plt.xlabel("Photon energy [eV]")
-        plt.ylabel(f"(Absorbance·E)^{{{exponent}}}")
+        plt.ylabel(f"(Absorbance·E)$^{2}$")
         plt.legend()
-        plt.grid()
+        #plt.grid()
         plt.savefig(savePath)
 
     def logData(self, saveName="fit_results.csv"):

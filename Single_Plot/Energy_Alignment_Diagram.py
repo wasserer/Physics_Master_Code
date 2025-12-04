@@ -7,7 +7,7 @@ layers = [
     ("ITO", -4.7, -4.7),  # Work function only
     ("PTAA", -5.2, -2.4),
     ("FAPbI3", -5.5, -3.9),
-    ("C60", -6.4, -4.5),
+    ("C60", -6.1, -4.0),
     ("Ag", -4.7, -4.7)   # Work function only
 ]
 
@@ -17,7 +17,7 @@ try:
 except Exception:
     plt.style.use("seaborn-whitegrid")
 
-fig, ax = plt.subplots(figsize=(11, 6.5), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(5, 3), constrained_layout=True, dpi = 300)
 
 # Colors by role
 colors = {
@@ -120,9 +120,10 @@ ax.tick_params(axis='x', pad=6)
 """Removed BCP note text per request"""
 
 # Formatting: fixed y-limits and vacuum reference
-ax.set_ylim(-8, 0)
+ax.set_ylim(-7, -1.8)
 ax.set_xlim(-0.6, len(layers) - 0.4)
 ax.set_ylabel("Energy (eV)", fontsize=12)
+ax.tick_params(axis="y", labelleft=False)
 
 # Vacuum level reference
 ax.axhline(0, color="#95a5a6", linewidth=1.2, linestyle="--", zorder=1)

@@ -18,7 +18,7 @@ class solarSimulator:
     The data is in the form of a 2D array, where the first column is the voltage, the second column is the current, the third column is the power, and the fourth column is the time.
     The class will also calculate the important parameters such as Isc, Voc, I_MPP, V_MPP, FF, and PCE.
     The class will also plot the IV curve and the multi IV curve.'''
-    def __init__(self, filePath=None, folderPath = None, CSV = None, refCurrent = 37):
+    def __init__(self, filePath=None, folderPath = None, CSV = None, refCurrent = 32, pixel_area = 0.079):
         self.filePath = filePath
         self.folderPath = folderPath
         #self.saveLocation = os.path.join(folderPath, "Result")
@@ -26,7 +26,7 @@ class solarSimulator:
         #The raw data from the measurement
         self.data = None
         self.currents = None
-        self.CDC = 1000/0.079 #Calculation where? 0.14, length: 0.69, old: 0.145
+        self.CDC = 1000/pixel_area #Calculation where? 0.143, length: 0.69, old: 0.143, new:0.079
         self.voltages = None
         self.powers = None
         self.times = None
@@ -41,7 +41,7 @@ class solarSimulator:
         self.FF = None
         self.PCE = None
         self.refCurrent = refCurrent
-        self.intensity = 100*self.refCurrent/47.98 #Unit: mW/cm^2
+        self.intensity = 100*self.refCurrent/47.98 #Unit: mW/cm^2 for 22.343 mW/cm^2
         self.cycleNum = []
         self.Rs = None
         self.Rp = None
@@ -58,7 +58,7 @@ class solarSimulator:
     def calcVoc(self, voltage, current):
         try:
             idx = np.argmin(np.abs(current))
-            Voc = voltage[idx]
+            Voc = -voltage[idx]
             return Voc
         except Exception as e:
             print(f"Error:", e)
@@ -119,6 +119,7 @@ class solarSimulator:
             return 0, 0, 0, 0
 
     def loadFileData(self):
+        self.CDC = 1000/0.079
         files = pd.read_csv(self.filePath, skiprows=range(0, 21), header=None, names=['voltage', 'current', 'power', 'time'], sep='\s+')
         self.data = np.asarray(files)
         self.data = self.data.T
@@ -137,6 +138,8 @@ class solarSimulator:
         The data is in the form of a 2D array, where the first column is the voltage, the second column is the current, the third column is the power, and the fourth column is the time.
         The class will also calculate the important parameters such as Isc, Voc, I_MPP, V_MPP, FF, and PCE.
         The class will also plot the IV curve and the multi IV curve.'''
+        self.CDC = 1000/0.1433
+        self.intensity = 22.343
         cycleCounter = 1
         self.temperature = []
         self.timestamp = []
@@ -257,8 +260,8 @@ class solarSimulator:
             self.Rp,
         ) = zip(*sorted_combined)
         #Normalizing all the self.PCE values to its highest value, because the solar simulator is not calibrated.
-        maxPCE = max(self.PCE)
-        self.PCE = [pce / maxPCE * 100 for pce in self.PCE]
+        #maxPCE = max(self.PCE)
+        #self.PCE = [pce / maxPCE * 100 for pce in self.PCE]
         start_time = self.timestamp[0]
         self.timestampAbsS = [(t - start_time).total_seconds() for t in self.timestamp]
         self.timestampAbsM = [s / 60 for s in self.timestampAbsS]
@@ -293,6 +296,7 @@ class solarSimulator:
         '''This is a function to do classical solar simulator data analysis, which is performed in the Solar simulator outside the glove box. The data is in the form of a .dat file, which contains the voltage, current, power, and time.
         The data is in the form of a 2D array, where the first column is the voltage, the second column is the current, the third column is the power, and the fourth column is the time.
         The class will also calculate the important parameters such as Isc, Voc, I_MPP, V_MPP, FF, and PCE.'''
+        self.CDC = 1000/0.079
         self.dat_files = [f for f in os.listdir(self.folderPath) if f.endswith('.dat')]
         self.Isc, self.Voc, self.I_MPP, self.V_MPP, self.FF, self.PCE = [[] for _ in range(6)]
         self.Rp = []
@@ -451,18 +455,18 @@ class solarSimulator:
 if __name__ == "__main__":
     from colors import color
     figColor = color.matlab()
-    file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/04_06_2025_Cs_Test/BestCells/test/25S_5_px3_Light_forward_0.dat'
-    folder = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest/BestCells'
+    #file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/04_06_2025_Cs_Test/BestCells/test/25S_5_px3_Light_forward_0.dat'
+    folder = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/MA_Data/Thickness_C60/30nm_C60_Good_Cells'
     analyzer = solarSimulator(filePath = None, folderPath=folder)
-    analyzer.loadFileData()
-    #analyzer.loadFolderData()
+    #nalyzer.loadFileData()
+    analyzer.loadFolderData()
     #print(analyzer.current.shape)
     #print(analyzer.voltages)
     #print("Cell Label:", analyzer.labels)
-    analyzer.IVCurve(saveName="")
-    print(analyzer.voltages.shape)
-    print(type(analyzer.voltages))
-    print("Isc:", analyzer.Isc, "Voc:", analyzer.Voc, "VMPP:", analyzer.V_MPP, "IMPP:",analyzer.I_MPP, "FF:", analyzer.FF, "PCE:", analyzer.PCE)
+    #analyzer.IVCurve(saveName="")
+    #print(analyzer.voltages.shape)
+    #print(type(analyzer.voltages))
+    #print("Isc:", analyzer.Isc, "Voc:", analyzer.Voc, "VMPP:", analyzer.V_MPP, "IMPP:",analyzer.I_MPP, "FF:", analyzer.FF, "PCE:", analyzer.PCE)
     analyzer.logData()
     #analyzer.IVMultiPlot(saveName='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest/BestCells/IV_Multi3.png')
     #analyzer.histoPlot()
