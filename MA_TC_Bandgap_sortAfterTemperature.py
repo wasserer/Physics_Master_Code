@@ -15,8 +15,8 @@ TEMPERATURE_RANGES = [
     ('70_80', (70, 80)),
 ]
 
-BANDGAP_FILE = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/tauc_metrics_test.csv'
-RESULT_FOLDER = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/Average_bandgap_different_temperature')
+BANDGAP_FILE = ""  # Enter your file path/folder path in this place
+RESULT_FOLDER = Path("")  # Enter your file path/folder path in this place
 CYCLE_COLUMN = 'cycle'
 BASE_COLOR = '#d62728'
 BRIGHTNESS_LEVELS = np.linspace(1.0, 0.5, len(TEMPERATURE_RANGES))

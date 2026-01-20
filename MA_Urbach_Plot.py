@@ -5,15 +5,15 @@ from pathlib import Path
 from typing import Optional
 
 tauc_file = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/'
+    ""  # Enter your file path/folder path in this place
     'ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/tauc_metrics.csv'
 )
 temperature_file = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/'
+    ""  # Enter your file path/folder path in this place
     'ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/temperature_log.csv'
 )
 urbach_file = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/'
+    ""  # Enter your file path/folder path in this place
     'ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/urbach_metrics.csv'
 )
 

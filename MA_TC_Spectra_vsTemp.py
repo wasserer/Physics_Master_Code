@@ -3,9 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-spectra_data = "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/tauc_metrics_test.csv"
-urbach_data = "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/urbach_metrics_test.csv"
-output_dir = Path("/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/image2latex")
+spectra_data = ""  # Enter your file path/folder path in this place
+urbach_data = ""  # Enter your file path/folder path in this place
+output_dir = Path("")  # Enter your file path/folder path in this place
 output_dir.mkdir(parents=True, exist_ok=True)
 
 selected_cycles = [1, 10, 20, 30, 40, 50]

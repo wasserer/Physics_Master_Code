@@ -30,12 +30,12 @@ def select_temperature_ranges(temperature_ranges, selection):
         raise ValueError(f'Requested temperature ranges not defined: {missing_labels}')
     return [(label, label_to_range[label]) for label in selection]
 
-px1_file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/pixel/px1_result.csv'
-px2_file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/pixel/px2_result.csv'
-px3_file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/pixel/px3_result.csv'
-px4_file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/pixel/px4_result.csv'
-px5_file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/pixel/px5_result.csv'
-px6_file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/pixel/px6_result.csv'
+px1_file = ""  # Enter your file path/folder path in this place
+px2_file = ""  # Enter your file path/folder path in this place
+px3_file = ""  # Enter your file path/folder path in this place
+px4_file = ""  # Enter your file path/folder path in this place
+px5_file = ""  # Enter your file path/folder path in this place
+px6_file = ""  # Enter your file path/folder path in this place
 
 px1_df = pd.read_csv(px1_file)
 px2_df = pd.read_csv(px2_file)
@@ -165,7 +165,7 @@ for name, df in px_frames.items():
     px_cycle_avg_arrays[name] = avg_array
     px_cycle_err_arrays[name] = err_array
 
-EXPORT_ROOT = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/Average_pixel_different_temperature')
+EXPORT_ROOT = Path("")  # Enter your file path/folder path in this place
 metric_filenames = {
     'Voc [V]': 'Voc_result.csv',
     'Isc[mA/cm2]': 'Isc_result.csv',

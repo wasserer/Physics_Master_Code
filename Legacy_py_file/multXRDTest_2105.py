@@ -2,10 +2,10 @@ from plot_module.xrd_analyzer import XRDAnalyzer
 from plot_module.colors import color
 analyzer = XRDAnalyzer()
 #figColor = color.matlab(multiData=True)
-#analyzer.import_xrd_folder(folderPath='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/28022025/Data')
+#analyzer.import_xrd_folder(folderPath="")  # Enter your file path/folder path in this place
 #analyzer.normalize()
 analyzer2 = XRDAnalyzer()
-analyzer2.import_xrd_data(pathName='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/21052025/data/R5.txt')
+analyzer2.import_xrd_data(pathName="")  # Enter your file path/folder path in this place
 analyzer2.find_peaks_and_FWHM(log=True)
 #analyzer.peakAngles = analyzer2.peakAngles
 #print(type(analyzer.xrd_data), analyzer.xrd_data.shape)
@@ -13,4 +13,4 @@ analyzer2.find_peaks_and_FWHM(log=True)
 #print("Peak array list",analyzer.peakAngles)
 #analyzer.multiXRD(graphColor=figColor)
 #analyzer.zoomInMultiPlot(graphColor=figColor)
-#analyzer.multiXRD(graphColor=figColor, savePath='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/21052025/data/MultiPlot_Auto.png')
+#analyzer.multiXRD(graphColor=figColor, savePath="")  # Enter your file path/folder path in this place

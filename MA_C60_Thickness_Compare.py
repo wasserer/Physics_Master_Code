@@ -25,10 +25,10 @@ sns.set(style="whitegrid", context="talk")
 
 # Provide either a base folder that contains one sub-folder per sample or
 # specify absolute/relative paths per group inside ``GROUPS``.
-FOLDER_PATH: str = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/MA_Data/Thickness_C60/Selected_Data'
+FOLDER_PATH: str = ""  # Enter your file path/folder path in this place
 GROUPS: dict[str, str] = {
-    "40nm C60": '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/MA_Data/Thickness_C60/Selected_Data/40nm_C60',
-    "30nm C60": '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/MA_Data/Thickness_C60/Selected_Data/30nm_C60',
+    "40nm C60": "",  # Enter your file path/folder path in this place
+    "30nm C60": "",  # Enter your file path/folder path in this place
 }
 
 METRIC_ORDER: Sequence[str] = ("Voc", "Isc", "FF", "PCE")

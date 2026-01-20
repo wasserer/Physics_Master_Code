@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 PIXEL_DIR = Path(
-    "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/"
+    ""  # Enter your file path/folder path in this place
     "Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/"
     "TC_1909_IV/TC_log/pixel"
 )
@@ -21,7 +21,7 @@ METRICS = {
 
 CYCLE_COLORS = dict(zip(SELECTED_CYCLES, COLORS))
 SAVE_DIR = Path(
-    "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/"
+    ""  # Enter your file path/folder path in this place
     "Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/"
     "TC_1909_IV/TC_log/Result_Average_vs_Temperature"
 )

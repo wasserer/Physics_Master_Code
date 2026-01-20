@@ -10,9 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
 #Change the parameters accordingly
-#pathName = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/28022025/2StepPerovskite.txt'
+#pathName = ""  # Enter your file path/folder path in this place
 #peaksPresets = ()
-#pathNameVesta = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/Material Project/FAPbI3.xy'
+#pathNameVesta = ""  # Enter your file path/folder path in this place
 
 def importData(pathName):
     with open(pathName, "r") as file:
@@ -120,7 +120,7 @@ def plotDataOld(data):
     plt.ylabel("Intensity (counts)")
     plt.title("XRD Measurement: Angle vs Intensity")
     plt.legend()
-    plt.savefig('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/14042025/result.png')
+    plt.savefig("")  # Enter your file path/folder path in this place
     #plt.show()
     plt.close()
 #    plt.grid(True)
@@ -153,7 +153,7 @@ def PlotCompareData(data, dataVesta):
     plt.ylabel("Intensity (Noramalized)")
     plt.title("XRD Measurement: Angle vs Intensity")
     plt.legend()
-    plt.savefig('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/14042025/result_2step.png')
+    plt.savefig("")  # Enter your file path/folder path in this place
     #plt.show()
     plt.close()
 #    plt.grid(True)

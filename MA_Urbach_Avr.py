@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 URBACH_SOURCE = Path(
-    "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/"
+    ""  # Enter your file path/folder path in this place
     "Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/"
     "TC_1909_IV/TC_log/urbach_metrics_test.csv"
 )

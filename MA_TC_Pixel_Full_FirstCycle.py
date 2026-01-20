@@ -3,9 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-folderPath = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/pixel')
-result_Path = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/Result_FirstCycles')
-temperature = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/temperature_log.csv')
+folderPath = Path("")  # Enter your file path/folder path in this place
+result_Path = Path("")  # Enter your file path/folder path in this place
+temperature = Path("")  # Enter your file path/folder path in this place
 
 PIXEL_COLOR_MAP = {
     'px1': '#1f77b4',
@@ -31,13 +31,6 @@ PARAMETERS_TO_PLOT = [
     'Rs',
     'Rp'
 ]
-
-PARAMETER_YLIMS = {
-    'FF': (0.4, 1.0),
-    'Isc[mA/cm2]': (3, 7),
-    'Voc [V]': (0.5, 1.1),
-    'PCE [%]': (5, 20),
-}
 
 
 def sanitize_filename(parameter_name: str) -> str:
@@ -122,24 +115,11 @@ def plot_parameters(pixel_dataframes: dict, temperature_df: pd.DataFrame) -> Non
         ax.set_ylabel(parameter)
         pad = 0.02 * (time_max - time_min)
         ax.set_xlim(time_min - pad, time_max + pad)
-        if parameter in PARAMETER_YLIMS:
-            ax.set_ylim(PARAMETER_YLIMS[parameter])
         ax.grid(True, alpha=0.3)
 
         ax2 = ax.twinx()
         ax2.plot(temp_hours, temp_values, color='black', alpha=0.5, label='Temperature')
         ax2.set_ylabel('Temperature [°C]')
-        ax2.set_ylim(-80, 115)
-
-        handles1, labels1 = ax.get_legend_handles_labels()
-        handles2, labels2 = ax2.get_legend_handles_labels()
-        if handles2:
-            handles = handles1 + handles2
-            labels = labels1 + labels2
-        else:
-            handles, labels = handles1, labels1
-        if handles:
-            ax.legend(handles, labels, loc='upper right', fontsize='small', ncol=2)
 
         fig.tight_layout()
         output_file = result_Path / f"{sanitize_filename(parameter)}_vs_time.png"

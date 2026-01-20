@@ -11,9 +11,9 @@ from typing import Any, Iterable, Sequence, Tuple
 import matplotlib.pyplot as plt
 
 DEFAULT_DATA_DIR = Path(
-    #'/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/MA_Data/Spincoating_Parameter_New'
-    #'/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/MA_Data/Compare_CsI'
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/MA_Data/Final_Compare'
+    #""  # Enter your file path/folder path in this place
+    #""  # Enter your file path/folder path in this place
+    ""  # Enter your file path/folder path in this place
 )
 
 GROUP_PALETTE: dict[str, str] = {
@@ -454,7 +454,7 @@ def calculate_stack_step(
 def plot_xrd_patterns(
     patterns: Iterable[tuple[Path, list[float], list[float]]],
     output_path: Path | None = None,
-    xlim: tuple[float, float] | None = None,
+    xlim: tuple[float, float] | None = None, #xlim: tuple[float, float] | None = None,
     ylim: tuple[float | None, float | None] | None = None,
     show: bool = True,
     peaks_map: dict[Path, list[PeakMeasurement]] | None = None,
@@ -665,7 +665,7 @@ def plot_located_peaks(
         plot_xrd_patterns(
             patterns_list,
             output_path=output_path,
-            xlim=(x_min, x_max),
+            xlim=(x_min, x_max),#xlim=(x_min, x_max),
             ylim=(-0.4, top_limit),
             show=False,
             peaks_map=peaks_map,
@@ -826,6 +826,7 @@ def main() -> None:
     plot_xrd_patterns(
         normalized_patterns,
         output_path=output_path,
+        xlim=(5, 30),
         peaks_map=peaks_map,
         ylim=(-0.4, 7),
         stack_step=stack_step,

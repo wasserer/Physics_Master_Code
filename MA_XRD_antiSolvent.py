@@ -10,9 +10,9 @@ from typing import Any, Iterable, Tuple
 import matplotlib.pyplot as plt
 
 DEFAULT_DATA_DIR = Path(
-    #'/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/MA_Data/Spincoating_Parameter_New'
-    #'/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/MA_Data/Compare_CsI'
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/MA_Data/Final_Compare'
+    #""  # Enter your file path/folder path in this place
+    #""  # Enter your file path/folder path in this place
+    ""  # Enter your file path/folder path in this place
 )
 
 GROUP_PALETTE: dict[str, str] = {

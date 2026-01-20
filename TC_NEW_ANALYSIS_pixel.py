@@ -13,15 +13,15 @@ from plot_module.tc_analyzer import ThermalCycling
 
 # Absolute path to the thermal cycling data for this analysis.
 TC_FOLDER = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV'
+    ""  # Enter your file path/folder path in this place
 )
 
 TEMPERATURE_LOG_PATH = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/temperature_log.csv'
+    ""  # Enter your file path/folder path in this place
 )
 
 PIXEL_RESULT_DIR = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/pixel_result'
+    ""  # Enter your file path/folder path in this place
 )
 
 PIXEL_COLOR_CYCLE = ("#d62728", "#1f77b4", "#ff7f0e")

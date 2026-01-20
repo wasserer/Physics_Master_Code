@@ -13,8 +13,8 @@ import numpy as np
 import os
 #import seaborn as sns
 
-filePath = r'/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/10_04_2025_1Step_100C/result_sum.csv'
-savePath = r'/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/Summery_03042025'
+filePath = ""  # Enter your file path/folder path in this place
+savePath = ""  # Enter your file path/folder path in this place
 saveName = "PCE of 10mg"
 title = '10.04.2025, 5mg PTAA, one step Nr.2'
 fullPath = os.path.join(savePath, saveName)

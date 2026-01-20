@@ -52,7 +52,7 @@ class PL_Analyzer:
 
 
 if __name__ == "__main__":
-    folderPath = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/21072025/PL'
+    folderPath = ""  # Enter your file path/folder path in this place
     analyzer = PL_Analyzer(folderPath=folderPath)
     analyzer.importFolder()
 

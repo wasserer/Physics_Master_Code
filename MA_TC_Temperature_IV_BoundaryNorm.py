@@ -8,8 +8,8 @@ from matplotlib.colors import BoundaryNorm
 from plot_module.solsim_analyzer import solarSimulator
 
 # MA_TC_Temperature_IV.py
-folderPath_px6 = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/Pixel_Temperature_3rd')
-#folderPath_px6 = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/Pixel_Temperature_2nd')
+folderPath_px6 = Path("")  # Enter your file path/folder path in this place
+#folderPath_px6 = Path("")  # Enter your file path/folder path in this place
 analyzer = solarSimulator(folderPath=folderPath_px6)
 analyzer.loadFolderData_Cycling()
 
@@ -74,5 +74,5 @@ sm.set_array([])
 cbar = fig.colorbar(sm, ax=ax, label="Temperature [°C]")
 pretty_ticks = np.arange(-20, 100, 20)
 cbar.set_ticks(pretty_ticks[(pretty_ticks >= temperatures.min()) & (pretty_ticks <= temperatures.max())])
-save_path = "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/image2latex/IV_3rd_cycle.png"
+save_path = ""  # Enter your file path/folder path in this place
 fig.savefig(save_path, dpi=300, bbox_inches="tight")

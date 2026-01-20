@@ -455,8 +455,8 @@ class solarSimulator:
 if __name__ == "__main__":
     from colors import color
     figColor = color.matlab()
-    #file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/04_06_2025_Cs_Test/BestCells/test/25S_5_px3_Light_forward_0.dat'
-    folder = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/MA_Data/Thickness_C60/30nm_C60_Good_Cells'
+    #file = ""  # Enter your file path/folder path in this place
+    folder = ""  # Enter your file path/folder path in this place
     analyzer = solarSimulator(filePath = None, folderPath=folder)
     #nalyzer.loadFileData()
     analyzer.loadFolderData()
@@ -468,6 +468,6 @@ if __name__ == "__main__":
     #print(type(analyzer.voltages))
     #print("Isc:", analyzer.Isc, "Voc:", analyzer.Voc, "VMPP:", analyzer.V_MPP, "IMPP:",analyzer.I_MPP, "FF:", analyzer.FF, "PCE:", analyzer.PCE)
     analyzer.logData()
-    #analyzer.IVMultiPlot(saveName='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest/BestCells/IV_Multi3.png')
+    #analyzer.IVMultiPlot(saveName="")  # Enter your file path/folder path in this place
     #analyzer.histoPlot()
-    #analyzer.IVCurve(saveName='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/21_05_2025_IPATest/BestCells/IV_Single.png')
+    #analyzer.IVCurve(saveName="")  # Enter your file path/folder path in this place

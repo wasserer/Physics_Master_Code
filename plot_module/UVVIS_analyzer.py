@@ -306,7 +306,7 @@ class UV_VIS_Analyzer:
 
 if __name__ == "__main__":
     figcolor = ["#0072BD", "#D95319", "#EDB120", "#7E2F8E", "#77AC30", "#4DBEEE", "#A2142F"]
-    df = UV_VIS_Analyzer(folderPath='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/UV-VIS/After_TC_1909/Data', GermanMode=False)
+    df = UV_VIS_Analyzer(folderPath='', GermanMode=False) # Enter Folder Path here
     #print("Light",df.light, type(df.light))
     #print("Dark:", df.dark)
     #print(df.absorption.shape)

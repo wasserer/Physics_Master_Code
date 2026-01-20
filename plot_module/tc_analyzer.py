@@ -55,5 +55,5 @@ class PreTreat_Spectra:
         
 
 if __name__ == "__main__":
-    analyzer = ThermalCycling(folderPath='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/02072025/R5_1_Neustart_2025-07-02_18-58-14')
+    analyzer = ThermalCycling(folderPath="")  # Enter your file path/folder path in this place
     analyzer.sortData()

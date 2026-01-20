@@ -13,7 +13,7 @@ from plot_module.tc_analyzer import ThermalCycling
 
 # Absolute path to the thermal cycling data for this analysis.
 TC_FOLDER = Path(
-    "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/"
+    ""  # Enter your file path/folder path in this place
     "Pervoskite Space(Master)/Data/ThermalCycling/TEMP_TC_1809"
 )
 

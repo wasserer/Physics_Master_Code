@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-folderPath='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/UV-VIS/0206/CSV/20IPA.csv'
+folderPath=""  # Enter your file path/folder path in this place
 
 df = pd.read_csv(folderPath, decimal=",", sep=";")
 print(df.head())

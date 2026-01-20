@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 #The IV-curve and the Spectra results are stored in the same folder
 
 PIXEL_OUTPUT_FOLDER = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/'
+    ""  # Enter your file path/folder path in this place
     'Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/pixel'
 )
 SPECTRA_FILE = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/'
+    ""  # Enter your file path/folder path in this place
     'Pervoskite Space(Master)/Data/ThermalCycling/MA_Data/Spectra.csv'
 )
 cycle_range = (1, 5)
@@ -104,7 +104,7 @@ SPECTRA_COLUMN_MAP = {
 }
 
 TEMPERATURE_LOG_FILE = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/'
+    ""  # Enter your file path/folder path in this place
     'Pervoskite Space(Master)/Data/ThermalCycling/MA_Data/temperature_log.csv'
 )
 

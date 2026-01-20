@@ -19,7 +19,7 @@ import pandas as pd
 from plot_module.solsim_analyzer import solarSimulator
 
 DATA_ROOT = Path(
-    "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/"
+    ""  # Enter your file path/folder path in this place
     "Pervoskite Space(Master)/Data/SolSim/MA_Data/With_Without_Prewetting/Data_Used"
 )
 

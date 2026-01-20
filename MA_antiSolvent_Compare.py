@@ -28,27 +28,27 @@ sns.set(style="whitegrid", context="talk")
 # Provide either a base folder that contains one sub-folder per sample or
 # specify absolute/relative paths per group inside ``GROUPS``.
 FOLDER_PATH: str = (
-    "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/"
+    ""  # Enter your file path/folder path in this place
     "Pervoskite Space(Master)/Data/SolSim/MA_Data/DrippingTime_RPM_Compare"
 )
 GROUPS: dict[str, str] = {
     "R3000_20s": (
-        "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/"
+        ""  # Enter your file path/folder path in this place
         "Pervoskite Space(Master)/Data/SolSim/MA_Data/DrippingTime_RPM_Compare/"
         "RPM3000_20S"
     ),
     "R3000_25s": (
-        "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/"
+        ""  # Enter your file path/folder path in this place
         "Pervoskite Space(Master)/Data/SolSim/MA_Data/DrippingTime_RPM_Compare/"
         "RPM3000_25S"
     ),
     "R5000_25s": (
-        "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/"
+        ""  # Enter your file path/folder path in this place
         "Pervoskite Space(Master)/Data/SolSim/MA_Data/DrippingTime_RPM_Compare/"
         "RPM5000_25S"
     ),
     "R5000_30s": (
-        "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/"
+        ""  # Enter your file path/folder path in this place
         "Pervoskite Space(Master)/Data/SolSim/MA_Data/DrippingTime_RPM_Compare/"
         "RPM5000_30S"
     ),

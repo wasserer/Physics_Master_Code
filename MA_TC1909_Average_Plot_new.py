@@ -8,24 +8,24 @@ from typing import Dict
 SHOW_ERROR_BARS = True
 FIGURE_DPI = 300
 RESULT_DIR = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/'
+    ""  # Enter your file path/folder path in this place
     'Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log'
 )
 
 tauc_file = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/'
+    ""  # Enter your file path/folder path in this place
     'ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/tauc_metrics.csv'
 )
 temperature_file = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/'
+    ""  # Enter your file path/folder path in this place
     'ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/temperature_log.csv'
 )
 urbach_file = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/'
+    ""  # Enter your file path/folder path in this place
     'ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/urbach_metrics.csv'
 )
 pixel_folder = Path(
-    '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/'
+    ""  # Enter your file path/folder path in this place
     'ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/pixel'
 )
 

@@ -273,8 +273,8 @@ class XRDAnalyzer:
 
 if __name__ == "__main__":
     from colors import *
-    xrd_path = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/14042025/Result.txt'
-    vesta_path = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/Material Project/FAPbI3.xy'
+    xrd_path = ""  # Enter your file path/folder path in this place
+    vesta_path = ""  # Enter your file path/folder path in this place
     analyzer = XRDAnalyzer()
     analyzer.import_xrd_data(pathName=xrd_path)
     x = analyzer.angles.shape

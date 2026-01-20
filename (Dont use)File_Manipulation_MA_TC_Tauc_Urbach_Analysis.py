@@ -3,11 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-pixel_folder = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/Old_Files/pixel')
-tauc_file = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/Old_Files/tauc_metrics.csv')
-temperature_file = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/Old_Files/temperature_log.csv')
-urbach_file = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/Old_Files/urbach_metrics.csv')
-result_folder = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/Old_Files/Result')
+pixel_folder = Path("")  # Enter your file path/folder path in this place
+tauc_file = Path("")  # Enter your file path/folder path in this place
+temperature_file = Path("")  # Enter your file path/folder path in this place
+urbach_file = Path("")  # Enter your file path/folder path in this place
+result_folder = Path("")  # Enter your file path/folder path in this place
 
 # Load the core log files needed for the analysis
 

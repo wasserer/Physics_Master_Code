@@ -15,8 +15,8 @@ TEMPERATURE_RANGES = [
     ('70_80', (70, 80)),
 ]
 
-URBACH_FILE = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/urbach_metrics_test.csv'
-RESULT_FOLDER = Path('/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/TC_1709_50Cycle/TC_1909_IV/TC_log/Average_urbach_different_temperature')
+URBACH_FILE = ""  # Enter your file path/folder path in this place
+RESULT_FOLDER = Path("")  # Enter your file path/folder path in this place
 CYCLE_COLUMN = 'cycle'
 BASE_COLOR = '#2ca02c'
 HIGHLIGHT_RANGE = (36.5, 44.5)

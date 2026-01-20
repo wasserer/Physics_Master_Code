@@ -6,7 +6,7 @@ import scipy as sp
 import pandas as pd
 import re
 
-file = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/06082025_Temp/Test1_8_Orbit_2025-07-28_18-26-05/px2/20250728_182632_Test1_8_Orbit_px2_Light_forward_c000.dat'
+file = ""  # Enter your file path/folder path in this place
 
 with open(file, 'r') as data:
     lines = data.readlines()

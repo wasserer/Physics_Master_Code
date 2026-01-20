@@ -3,8 +3,8 @@ from plot_module.xrd_analyzer import XRDAnalyzer
 from plot_module.solsim_analyzer import solarSimulator
 import matplotlib.pyplot as plt
 
-folderCB = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/15_05_2025_1Step_CB_IPA/CB'
-folderIPA = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/15_05_2025_1Step_CB_IPA/IPA'
+folderCB = ""  # Enter your file path/folder path in this place
+folderIPA = ""  # Enter your file path/folder path in this place
 
 CBsolsim = solarSimulator(folderPath=folderCB)
 CBsolsim.loadFolderData()

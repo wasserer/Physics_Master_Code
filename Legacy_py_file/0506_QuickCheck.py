@@ -3,13 +3,13 @@ import matplotlib.pyplot as plt
 
 
 X20s = XRDAnalyzer()
-X20s.import_xrd_data(pathName='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/XRD_05062025/Results/20S_IPA.txt')
+X20s.import_xrd_data(pathName="")  # Enter your file path/folder path in this place
 X25s = XRDAnalyzer()
-X25s.import_xrd_data(pathName='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/XRD_05062025/Results/25S_IPA.txt')
+X25s.import_xrd_data(pathName="")  # Enter your file path/folder path in this place
 XCBs = XRDAnalyzer()
-XCBs.import_xrd_data(pathName='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/XRD_05062025/Results/CB.txt')
+XCBs.import_xrd_data(pathName="")  # Enter your file path/folder path in this place
 XR5s = XRDAnalyzer()
-XR5s.import_xrd_data(pathName='/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/XRD/XRD_05062025/Results/R5.txt')
+XR5s.import_xrd_data(pathName="")  # Enter your file path/folder path in this place
 X20s.intensities = X20s.intensities / 0.027347053848322526
 X25s.intensities = X25s.intensities / 0.19322344322344323# 0.19322344322344323
 XCBs.intensities = XCBs.intensities / 0.7468643101482326

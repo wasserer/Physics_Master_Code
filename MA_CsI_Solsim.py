@@ -27,8 +27,8 @@ sns.set(style="whitegrid", context="talk")
 # specify absolute/relative paths per group inside ``GROUPS``.
 FOLDER_PATH: str = ""
 GROUPS: dict[str, str] = {
-    "With CsI": "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/MA_Data/Cs_Compare/Cs_Compare_Final/With_CsI",
-    "Without CsI": "/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/SolSim/MA_Data/Cs_Compare/Cs_Compare_Final/Without_CsI",
+    "With CsI": "",  # Enter your file path/folder path in this place
+    "Without CsI": "",  # Enter your file path/folder path in this place
 }
 
 METRIC_ORDER: Sequence[str] = ("Voc", "Isc", "FF", "PCE")

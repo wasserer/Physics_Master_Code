@@ -69,7 +69,7 @@ class Spectroscopy:
         self.energyDifference = []
         #Import Data:
 
-    def importDark(self, calculate = False, darkFilePath = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/02072025/R5_1_Neustart_2025-07-02_18-58-14/Spectra/Dark/20250702_185956_R5_1_Neustart_Spectrum_dark_Dark.dat'):
+    def importDark(self, calculate = False, darkFilePath = ""):  # Enter your file path/folder path in this place
         '''This function imports the dark measurement data from the file, and subtracts it from the light measurement data.
         The dark measurement data is stored in the following format:
         - wavelengths: list of wavelengths
@@ -227,7 +227,7 @@ class Spectroscopy:
             self.cycleNum.append((self.timestampAbsS[i]//5520+1))
         '''
 
-    def importLight(self, calculate = False, lightFilePath = '/Users/ruodongyang/Documents/Resilio_Sync/TUM Master Physik/Pervoskite Space(Master)/Data/ThermalCycling/LightValue/Rudong_Spectra_Light_500.dat'):
+    def importLight(self, calculate = False, lightFilePath = ""):  # Enter your file path/folder path in this place
         data = np.loadtxt(lightFilePath, skiprows=21)
         self.lightWavelength = data[:, 1]
         self.lightValue = data[:, 2]
